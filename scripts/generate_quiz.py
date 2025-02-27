@@ -1,4 +1,5 @@
 # Purpose: Generates a quiz dataset by randomly selecting 20 questions from each raw dataset.
+#command : python generate_quiz_dataset.py --raw_dataset_path /path/to/raw/dataset --output_path /
 import pandas as pd
 
 # Load datasets
