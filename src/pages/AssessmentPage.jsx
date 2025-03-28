@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaClipboardList, FaChartLine } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 
 const AssessmentsPage = () => {
+  const navigate = useNavigate();
   const [assessments, setAssessments] = useState([]);
   const [filteredAssessments, setFilteredAssessments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +23,8 @@ const AssessmentsPage = () => {
           subject: 'Mathematics',
           duration: '60 minutes',
           totalQuestions: 50,
-          icon: <FaChartLine className="w-12 h-12 text-indigo-600" />
+          icon: <FaChartLine className="w-12 h-12 text-indigo-600" />,
+          route: 'mathematics'
         },
         {
           id: 2,
@@ -30,7 +33,8 @@ const AssessmentsPage = () => {
           subject: 'Physics',
           duration: '60 minutes',
           totalQuestions: 50,
-          icon: <FaClipboardList className="w-12 h-12 text-green-600" />
+          icon: <FaClipboardList className="w-12 h-12 text-green-600" />,
+          route: 'physics'
         },
         {
           id: 3,
@@ -39,7 +43,8 @@ const AssessmentsPage = () => {
           subject: 'Chemistry',
           duration: '60 minutes',
           totalQuestions: 50,
-          icon: <FaChartLine className="w-12 h-12 text-orange-600" />
+          icon: <FaChartLine className="w-12 h-12 text-orange-600" />,
+          route: 'chemistry'
         },
         {
           id: 4,
@@ -48,7 +53,8 @@ const AssessmentsPage = () => {
           subject: 'Biology',
           duration: '60 minutes',
           totalQuestions: 50,
-          icon: <FaClipboardList className="w-12 h-12 text-purple-600" />
+          icon: <FaClipboardList className="w-12 h-12 text-purple-600" />,
+          route: 'biology'
         }
       ];
       
@@ -76,36 +82,45 @@ const AssessmentsPage = () => {
     setSearchTerm(e.target.value);
   };
 
-  const AssessmentCard = ({ assessment }) => (
-    <motion.div 
-      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-      whileHover={{ scale: 1.02 }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <div className="p-6">
-        <div className="flex items-center mb-4">
-          {assessment.icon}
-          <div className="ml-4">
-            <h3 className="text-lg font-semibold text-gray-900">{assessment.title}</h3>
-            <p className="text-sm text-gray-500">{assessment.subject}</p>
+  const AssessmentCard = ({ assessment }) => {
+    const handleBeginAssessment = () => {
+      navigate(`/assessment/${assessment.route}`);
+    };
+
+    return (
+      <motion.div 
+        className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+        whileHover={{ scale: 1.02 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="p-6">
+          <div className="flex items-center mb-4">
+            {assessment.icon}
+            <div className="ml-4">
+              <h3 className="text-lg font-semibold text-gray-900">{assessment.title}</h3>
+              <p className="text-sm text-gray-500">{assessment.subject}</p>
+            </div>
           </div>
+          <p className="text-sm text-gray-600 mb-4">{assessment.description}</p>
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+            <div>
+              <span className="font-medium">Duration:</span> {assessment.duration}
+            </div>
+            <div>
+              <span className="font-medium">Total Questions:</span> {assessment.totalQuestions}
+            </div>
+          </div>
+          <button 
+            className="mt-4 w-full btn btn-primary"
+            onClick={handleBeginAssessment}
+          >
+            Begin Pre-Assessment
+          </button>
         </div>
-        <p className="text-sm text-gray-600 mb-4">{assessment.description}</p>
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-          <div>
-            <span className="font-medium">Duration:</span> {assessment.duration}
-          </div>
-          <div>
-            <span className="font-medium">Total Questions:</span> {assessment.totalQuestions}
-          </div>
-        </div>
-        <button className="mt-4 w-full btn btn-primary">
-          Begin Pre-Assessment
-        </button>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,7 +146,6 @@ const AssessmentsPage = () => {
             </div>
           </div>
         </div>
-
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {[...Array(4)].map((_, index) => (

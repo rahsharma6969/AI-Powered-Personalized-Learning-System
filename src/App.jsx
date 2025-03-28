@@ -27,6 +27,7 @@ const AssessmentPage = lazy(() => import('./pages/AssessmentPage'));
 const PostAssessmentPage = lazy(() => import('./pages/PostAssessmentPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
+const StartAssessPage = lazy(() => import('./pages/StartAssessPage.jsx'))
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -112,7 +113,13 @@ function App() {
                   <AssessmentPage />
                 </MainLayout>
               } />
-              
+
+              <Route path="/assessment/:sub" element={
+                <MainLayout>
+                  <StartAssessPage />
+                </MainLayout>
+              } />
+
               <Route path="/support" element={
                 <MainLayout>
                   <SupportPage />
