@@ -23,6 +23,7 @@ const CoursesPage = lazy(() => import('./pages/CoursesPAge'));
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const PreAssessmentPage = lazy(() => import('./pages/PreAssessmentPage'));
+const AssessmentPage = lazy(() => import('./pages/AssessmentPage'));
 const PostAssessmentPage = lazy(() => import('./pages/PostAssessmentPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
@@ -103,6 +104,12 @@ function App() {
               <Route path="/courses/:id" element={
                 <MainLayout>
                   <CourseDetailPage />
+                </MainLayout>
+              } />
+              
+              <Route path="/assessment" element={
+                <MainLayout>
+                  <AssessmentPage />
                 </MainLayout>
               } />
               
