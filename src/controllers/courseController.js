@@ -1,6 +1,6 @@
 import * as courseService from "../services/courseService.js";
 
-export const createCourse = async (req, res) => {
+export const createCourseController = async (req, res) => {
     try {
         const course = await courseService.createCourse(req.body);
         res.status(201).json({ message: "Course created successfully", course });

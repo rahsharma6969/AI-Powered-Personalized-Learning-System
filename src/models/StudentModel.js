@@ -6,6 +6,9 @@ const studentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
+    school:{type: String },
+    phone:{ type: String },
+    standard: { type: String },
     assessments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Assessment" }],
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     subjectPerformance: {  

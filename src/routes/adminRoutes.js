@@ -1,11 +1,16 @@
 import express from "express";
 import { createAssessmentController } from "../controllers/assessmentController.js";
 import { createCourseController } from "../controllers/courseController.js";
-import { authenticateUser, authorizeAdmin } from "../middlewares/auth.js";
+import { authenticateUser, adminAuth } from "../middlewares/auth.js";
+import { adminLogin } from "../controllers/adminController.js";
+
 
 const router = express.Router();
+// Upload Assessment
+router.post('/upload-assessment', adminAuth, createAssessmentController);
 
-router.post("/assessments", authenticateUser, authorizeAdmin, createAssessmentController);
-router.post("/courses", authenticateUser, authorizeAdmin, createCourseController);
+// Upload Course
+router.post('/upload-course', adminAuth, createCourseController);
+router.post('/login', adminLogin);
 
 export default router;

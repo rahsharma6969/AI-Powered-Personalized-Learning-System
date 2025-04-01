@@ -3,7 +3,8 @@ import {
     getStudentById as getStudentByIdService,
     loginStudentService,
     enrollInCourse as enrollInCourseService,
-    updateStudentPerformance as updateStudentPerformanceService
+    updateStudentPerformance as updateStudentPerformanceService,
+    updateStudentInfoService
 } from "../services/studentService.js";
 
 export const registerStudentController = async (req, res) => {
@@ -12,7 +13,8 @@ export const registerStudentController = async (req, res) => {
         console.log(req.body);
         
         const student = await registerStudentService(req.body);
-        res.status(201).json({ message: "Student registered successfully", student });
+        res.status(201)
+        .json({ message: "Student registered successfully", student });
     } catch (error) {
         console.error("❌ Error in registerStudent Controller:", error);
         res.status(400).json({ error: error.message });
@@ -25,15 +27,21 @@ export const loginStudent = async (req, res) => {
         console.log(req.body);
         
         const { email, password } = req.body;
-        const result = await loginStudentService(email, password);
-        res.
-        status(200)
-        .json({ message: "Student logged in successfully", result });
+        const { student, token } = await loginStudentService(email, password);
+        
+        res.status(200).json({ 
+            message: "Student logged in successfully",
+            token, // Send token in response body
+            student: {
+                id: student._id,
+                email: student.email
+                // Include other non-sensitive fields
+            }
+        });
     } catch (error) {
         res.status(401).json({ error: error.message });
     }
 };
-
 export const getStudentById = async (req, res) => {
     try {
         const student = await getStudentByIdService(req.params.id);
@@ -77,5 +85,17 @@ export const updateStudentPerformanceController = async (req, res) => {
         res.status(200).json({ message: "Performance updated successfully", student: updatedStudent });
     } catch (error) {
         res.status(400).json({ error: error.message });
+    }
+};
+
+
+export const updateStudentInfoController = async (req, res) => {
+    try {
+        
+      const updatestudent = await updateStudentInfoService(req.body, req.user);
+      res.status(200)
+      .json({ message: "Student info updated successfully", student: updatestudent });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };

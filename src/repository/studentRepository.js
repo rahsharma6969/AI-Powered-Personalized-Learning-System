@@ -9,6 +9,8 @@ const studentRepository = {
   // },
   getByEmail: async function (email) {
     const user = await Student.findOne({ email });
+    console.log(user);
+    
     return user;
     },
   enrollInCourse: async function (studentId, courseId) {

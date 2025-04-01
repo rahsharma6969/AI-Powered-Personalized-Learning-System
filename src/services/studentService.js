@@ -53,3 +53,19 @@ export const updateStudentPerformance = async (studentId, subject, score) => {
 
   return student;
 };
+
+
+
+export const updateStudentInfoService = async (data, user) => {
+  try {
+    const studentId = user.id || user._id 
+    
+    const student = await studentRepository.getById(studentId);
+    if (!student) throw new Error("Student not found");
+    
+    const updatedStudent = await studentRepository.updateById(studentId, data);
+    return updatedStudent; // Return the updated student data
+  } catch (error) {
+    throw new Error(`Error updating student info: ${error.message}`);
+  }
+};
