@@ -67,7 +67,7 @@ app.get("/api/quiz/:subject", (req, res) => {
   const fileMap = {
     maths: "data/output/maths_quiz.csv",
     physics: "data/output/physics_quiz.csv",
-    chemistry: "data/output/chem_quiz.csv",
+    chemistry: "data/output/chemistry_quiz.csv",
   };
 
   const filePath = fileMap[subject];

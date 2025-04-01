@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 
 # Load dataset
-df = pd.read_csv("data/raw/chemistry_aptitude_test_100 (2).csv")
+df = pd.read_csv("../../data/raw/chemistry_aptitude_test_100.csv")
 
 # Encode categorical variables
 df['Topic'] = df['Topic'].astype('category').cat.codes
@@ -24,7 +24,7 @@ model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 # Save the model - corrected filename to match dataset
-joblib.dump(model, "models/chemistry_quiz_generator_model.pkl")
+joblib.dump(model, "../models/chemistry_quiz_generator_model.pkl")
 print("Model trained and saved!")
 
 def generate_quiz(num_questions=50):
@@ -61,5 +61,5 @@ def generate_quiz(num_questions=50):
 
 # Generate a sample quiz - corrected output filename to match dataset
 quiz = generate_quiz()
-quiz.to_csv("data/output/chemistry_quiz.csv", index=False)
+quiz.to_csv("../../data/output/chemistry_quiz.csv", index=False)
 print(f"Quiz generated with {len(quiz)} questions and saved!")
