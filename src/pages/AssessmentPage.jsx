@@ -24,7 +24,7 @@ const AssessmentsPage = () => {
           duration: '60 minutes',
           totalQuestions: 50,
           icon: <FaChartLine className="w-12 h-12 text-indigo-600" />,
-          route: 'mathematics'
+          route: 'maths'
         },
         {
           id: 2,
