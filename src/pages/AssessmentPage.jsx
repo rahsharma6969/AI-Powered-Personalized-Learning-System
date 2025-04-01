@@ -45,16 +45,6 @@ const AssessmentsPage = () => {
           totalQuestions: 50,
           icon: <FaChartLine className="w-12 h-12 text-orange-600" />,
           route: 'chemistry'
-        },
-        {
-          id: 4,
-          title: 'Biology Pre-Assessment Test',
-          description: 'Explore your baseline understanding of biological sciences and natural systems.',
-          subject: 'Biology',
-          duration: '60 minutes',
-          totalQuestions: 50,
-          icon: <FaClipboardList className="w-12 h-12 text-purple-600" />,
-          route: 'biology'
         }
       ];
       
@@ -148,7 +138,7 @@ const AssessmentsPage = () => {
         </div>
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, index) => (
+            {[...Array(3)].map((_, index) => (
               <div 
                 key={index} 
                 className="bg-white rounded-lg shadow-sm h-96 animate-pulse"
