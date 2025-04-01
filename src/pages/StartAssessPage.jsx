@@ -74,7 +74,7 @@ const StartAssessPage = () => {
       setIsLoading(false);
     } else {
       // Redirect if no matching assessment found
-      navigate('/assessments');
+      navigate('/assessment');
     }
   }, [sub, navigate]);
 
@@ -124,6 +124,8 @@ const StartAssessPage = () => {
               type="checkbox" 
               id="accept-policies" 
               className="mr-2"
+              checked={policiesAccepted}
+              onChange={(e) => setPoliciesAccepted(e.target.checked)}
               required
             />
             <label htmlFor="accept-policies" className="text-gray-700">
@@ -134,7 +136,7 @@ const StartAssessPage = () => {
           <button 
             onClick={handleAcceptPolicies}
             className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
-            disabled={!document.getElementById('accept-policies')?.checked}
+            disabled={!policiesAccepted}
           >
             Start Assessment
           </button>
