@@ -25,14 +25,21 @@ export const adminLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Create the JWT token
     const token = jwt.sign({ adminId: admin._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-   
+
+    // Return both token and admin data
+    return res.json({ 
+      admin: { id: admin._id, email: admin.email }, 
+      token, 
+      message: "Admin login successful" 
+    });
     
-    return res.json({ token, message: "Admin login successful" });
   } catch (error) {
     console.error("Server error:", error); // Log the error for debugging
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+

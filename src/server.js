@@ -36,25 +36,27 @@ mongoose
   })
   .catch((err) => console.log("❌ MongoDB connection error:", err));
 
-const createAdmin = async () => {
-  try {
-    const existingAdmin = await Admin.findOne({ email: "admin@gmail.com" });
-    if (existingAdmin) {
-      console.log("✅ Admin already exists");
-      return;
+  const createAdmin = async () => {
+    try {
+      const existingAdmin = await Admin.findOne({ email: "admin@gmail.com" });
+      if (existingAdmin) {
+        console.log("✅ Admin already exists");
+        return;
+      }
+  
+      const admin = new Admin({
+        email: "admin@gmail.com",
+        password: "CollegeProject@26",
+        name: "Super Admin", // Adding a default name
+      });
+  
+      await admin.save();
+      console.log("✅ Admin created successfully");
+    } catch (error) {
+      console.error("❌ Error creating admin:", error.message);
     }
-
-    const admin = new Admin({
-      email: "admin@gmail.com",
-      password: "CollegeProject@26",
-    });
-
-    await admin.save();
-    console.log("✅ Admin created successfully");
-  } catch (error) {
-    console.error("❌ Error creating admin:", error.message);
-  }
-};
+  };
+  
 
 // Start the Server
 const PORT = process.env.PORT || 5000;
