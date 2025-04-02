@@ -52,28 +52,45 @@ const StartAssessmentPage = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSelectAnswer = (answer) => {
+  const handleSelectAnswer = (answerKey) => {
     setSelectedAnswers(prev => ({
       ...prev,
-      [currentQuestion]: answer
+      [questions[currentQuestion].Question]: answerKey, // Store option key (e.g., "Option A")
     }));
   };
 
   const handleSubmitAssessment = () => {
     let correctAnswers = 0;
-    questions.forEach((q, index) => {
-      if (selectedAnswers[index] === q['Correct Answer']) {
+  
+    console.log("Selected Answers:", selectedAnswers);
+    console.log("Question Data:", questions);
+  
+    questions.forEach((q) => {
+      // Get the correct answer key (e.g., "A", "B", "C", or "D")
+      const correctAnswerKey = q["Correct Answer"] || q["correct_answer"] || q["answer"]; 
+  
+      // Get the selected option key (e.g., "Option A", "Option B", etc.)
+      const selectedAnswerKey = selectedAnswers[q.Question];
+  
+      console.log(`Q: ${q.Question} | Expected: ${correctAnswerKey}, User: ${selectedAnswerKey}`);
+  
+      // Compare the selected answer key with the correct key (e.g., "A" vs. "C")
+      if (selectedAnswerKey && selectedAnswerKey.includes(correctAnswerKey)) {
         correctAnswers++;
       }
     });
+  
+    console.log("Final Score:", correctAnswers);
+  
     navigate(`/assessment/${sub}/results`, {
       state: {
         score: correctAnswers,
         total: questions.length,
-        answers: selectedAnswers
-      }
+        answers: selectedAnswers,
+      },
     });
   };
+  
 
   if (loading) {
     return (
@@ -103,9 +120,9 @@ const StartAssessmentPage = () => {
               {["Option A", "Option B", "Option C", "Option D"].map((key, index) => (
                 <div 
                   key={index} 
-                  onClick={() => handleSelectAnswer(questions[currentQuestion][key])}
+                  onClick={() => handleSelectAnswer(key)} // Pass key (Option A, Option B, etc.)
                   className={`p-3 border rounded-md cursor-pointer hover:bg-gray-50 transition-colors ${
-                    selectedAnswers[currentQuestion] === questions[currentQuestion][key] 
+                    selectedAnswers[questions[currentQuestion].Question] === key 
                       ? 'border-blue-500 bg-blue-50' 
                       : 'border-gray-300'
                   }`}
@@ -114,8 +131,8 @@ const StartAssessmentPage = () => {
                     <input 
                       type="radio" 
                       name={`question-${currentQuestion}`}
-                      checked={selectedAnswers[currentQuestion] === questions[currentQuestion][key]}
-                      onChange={() => handleSelectAnswer(questions[currentQuestion][key])}
+                      checked={selectedAnswers[questions[currentQuestion].Question] === key} // Compare key
+                      onChange={() => handleSelectAnswer(key)} // Pass key
                       className="mr-3"
                     />
                     {questions[currentQuestion][key]}

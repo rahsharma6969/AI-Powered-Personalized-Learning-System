@@ -16,7 +16,7 @@ const AssessmentResultsPage = () => {
   
   // Subject information from the assessment page
   const subjectInfo = {
-    mathematics: {
+    maths: {
       title: 'Mathematics Assessment',
       passingScore: 60,
       nextSteps: 'Review algebra and geometry concepts'
@@ -31,11 +31,6 @@ const AssessmentResultsPage = () => {
       passingScore: 60,
       nextSteps: 'Review periodic table and chemical reactions'
     },
-    biology: {
-      title: 'Biology Assessment',
-      passingScore: 60,
-      nextSteps: 'Study cell biology and genetics'
-    }
   };
   
   // Get the current subject info
