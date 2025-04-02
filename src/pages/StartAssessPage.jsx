@@ -66,17 +66,25 @@ const StartAssessmentPage = () => {
     console.log("Question Data:", questions);
   
     questions.forEach((q) => {
-      // Get the correct answer key (e.g., "A", "B", "C", or "D")
-      const correctAnswerKey = q["Correct Answer"] || q["correct_answer"] || q["answer"]; 
+      const correctAnswer = q["Correct Answer"] || q["correct_answer"] || q["answer"]; // Ensure key exists
+      const selectedOption = selectedAnswers[q.Question]; // e.g., "Option C"
   
-      // Get the selected option key (e.g., "Option A", "Option B", etc.)
-      const selectedAnswerKey = selectedAnswers[q.Question];
+      // Convert "Option C" -> actual answer text ("Virtual and erect" or "Right-angled")
+      const selectedAnswer = selectedOption ? q[selectedOption] : null;
   
-      console.log(`Q: ${q.Question} | Expected: ${correctAnswerKey}, User: ${selectedAnswerKey}`);
+      console.log(`Q: ${q.Question} | Expected: ${correctAnswer}, User: ${selectedAnswer}`);
   
-      // Compare the selected answer key with the correct key (e.g., "A" vs. "C")
-      if (selectedAnswerKey && selectedAnswerKey.includes(correctAnswerKey)) {
-        correctAnswers++;
+      // If correctAnswer is a single letter (A, B, C, D), compare with selected option key
+      if (["A", "B", "C", "D"].includes(correctAnswer)) {
+        if (selectedOption && selectedOption.includes(correctAnswer)) {
+          correctAnswers++;
+        }
+      } 
+      // Otherwise, compare actual text values
+      else {
+        if (selectedAnswer && String(selectedAnswer).trim().toLowerCase() === String(correctAnswer).trim().toLowerCase()) {
+          correctAnswers++;
+        }
       }
     });
   
@@ -90,6 +98,8 @@ const StartAssessmentPage = () => {
       },
     });
   };
+  
+  
   
 
   if (loading) {
