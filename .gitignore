@@ -10,24 +10,20 @@ dist/
 .env.*.local
 
 # Logs
-logs
+logs/
 *.log
-logs/*.log
 
 # Vite
-.vite
-.vite-cache
-*.cache
+.vite/
+.vite-cache/
+*.cache/
 
 # Build output
 build/
 dist/
 
-# Dependency directories
-node_modules/
-
 # Optional npm cache directory
-.npm
+.npm/
 
 # IDEs and editors
 .idea/
@@ -45,6 +41,22 @@ Thumbs.db
 # Testing
 coverage/
 *.lcov
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pkl
+*.sqlite3
+.pytest_cache/
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
 
 # Miscellaneous
 *.lock
