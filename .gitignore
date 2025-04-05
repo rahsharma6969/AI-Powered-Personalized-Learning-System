@@ -52,6 +52,10 @@ __pycache__/
 *.sqlite3
 .pytest_cache/
 
+# Ignore generated report images
+aiml/static/reports/*.png
+aiml/static/reports/*.jpg
+
 # Virtual environments
 env/
 venv/
