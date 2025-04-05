@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Clock, BarChart2 } from 'lucide-react';
 import axios from 'axios';
 
 const StartAssessmentPage = () => {
@@ -11,14 +11,38 @@ const StartAssessmentPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(60 * 60);
-  const [showWarning, setShowWarning] = useState(false);
+  const [showWarning, setShowWarning] = useState(false); // This state is used but not displayed in the UI
+
+  // Fisher-Yates (Knuth) shuffle algorithm
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Function to get color based on difficulty level
+  const getDifficultyColor = (difficulty) => {
+    if (!difficulty) return "bg-gray-200";
+    
+    const level = difficulty.toLowerCase();
+    if (level === "easy") return "bg-green-200 text-green-800";
+    if (level === "medium") return "bg-yellow-200 text-yellow-800";
+    if (level === "hard") return "bg-red-200 text-red-800";
+    return "bg-gray-200";
+  };
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/quiz/${sub.toLowerCase()}`);
         console.log("Quiz data received:", response.data);
-        setQuestions(response.data);
+        
+        // Shuffle the questions before setting state
+        const shuffledQuestions = shuffleArray(response.data);
+        setQuestions(shuffledQuestions);
       } catch (error) {
         console.error("Error fetching questions:", error);
         navigate("/assessment");
@@ -110,6 +134,10 @@ const StartAssessmentPage = () => {
     );
   }
 
+  const currentDifficulty = questions[currentQuestion]?.Difficulty || 
+                           questions[currentQuestion]?.difficulty || 
+                           "Not specified";
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="bg-white shadow-md rounded-lg p-6">
@@ -125,7 +153,17 @@ const StartAssessmentPage = () => {
 
         {questions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">{`Q${currentQuestion + 1}: ${questions[currentQuestion].Question.replace(/^Q\d+: /, '')}`}</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">
+                {`Q${currentQuestion + 1}: ${questions[currentQuestion].Question.replace(/^Q\d+: /, '')}`}
+              </h2>
+              <div className="flex items-center">
+                <BarChart2 className="w-4 h-4 mr-1 text-gray-600" />
+                <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(currentDifficulty)}`}>
+                  {currentDifficulty}
+                </span>
+              </div>
+            </div>
             <div className="space-y-3">
               {["Option A", "Option B", "Option C", "Option D"].map((key, index) => (
                 <div 
@@ -179,15 +217,30 @@ const StartAssessmentPage = () => {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2 justify-center">
-          {questions.map((_, index) => (
-            <button 
-              key={index}
-              onClick={() => setCurrentQuestion(index)}
-              className={`w-10 h-10 rounded-full ${currentQuestion === index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              {index + 1}
-            </button>
-          ))}
+          {questions.map((question, index) => {
+            const difficulty = question.Difficulty || question.difficulty || null;
+            let borderColor = "border-gray-300";
+            
+            if (difficulty) {
+              if (difficulty.toLowerCase() === "easy") borderColor = "border-green-500";
+              else if (difficulty.toLowerCase() === "medium") borderColor = "border-yellow-500";
+              else if (difficulty.toLowerCase() === "hard") borderColor = "border-red-500";
+            }
+            
+            return (
+              <button 
+                key={index}
+                onClick={() => setCurrentQuestion(index)}
+                className={`w-10 h-10 rounded-full border-2 ${borderColor} ${
+                  currentQuestion === index 
+                    ? 'bg-blue-500 text-white border-blue-500' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                } ${selectedAnswers[question.Question] ? 'font-bold' : ''}`}
+              >
+                {index + 1}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

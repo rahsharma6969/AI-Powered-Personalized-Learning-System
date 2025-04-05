@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { FaUser, FaEnvelope, FaLock, FaBell, FaCreditCard, FaDownload, FaShieldAlt, FaSignOutAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
+import { useNavigate } from 'react-router-dom';
+
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState('account');
   const [user, setUser] = useState({
     firstName: 'John',
@@ -19,7 +21,7 @@ const ProfilePage = () => {
     smsNotifications: false,
     twoFactorAuth: false
   });
-  
+
   const [formData, setFormData] = useState({
     firstName: user.firstName,
     lastName: user.lastName,
@@ -31,16 +33,16 @@ const ProfilePage = () => {
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   const [errors, setErrors] = useState({});
-  
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -49,17 +51,23 @@ const ProfilePage = () => {
       }));
     }
   };
-  
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+
   const handleToggleChange = (setting) => {
     setUser(prev => ({
       ...prev,
       [setting]: !prev[setting]
     }));
   };
-  
+
   const handleAccountSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const newErrors = {};
     if (!formData.firstName) newErrors.firstName = 'First name is required';
@@ -69,9 +77,9 @@ const ProfilePage = () => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     setErrors(newErrors);
-    
+
     // If no errors, update user
     if (Object.keys(newErrors).length === 0) {
       setUser(prev => ({
@@ -83,15 +91,15 @@ const ProfilePage = () => {
         grade: formData.grade,
         school: formData.school
       }));
-      
+
       // Show success message (would be a toast in a real app)
       alert('Profile updated successfully!');
     }
   };
-  
+
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const newErrors = {};
     if (!formData.currentPassword) newErrors.currentPassword = 'Current password is required';
@@ -100,13 +108,13 @@ const ProfilePage = () => {
     } else if (formData.newPassword.length < 8) {
       newErrors.newPassword = 'Password must be at least 8 characters';
     }
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setErrors(newErrors);
-    
+
     // If no errors, update password
     if (Object.keys(newErrors).length === 0) {
       // In a real app, call API to update password
@@ -116,12 +124,12 @@ const ProfilePage = () => {
         newPassword: '',
         confirmPassword: ''
       }));
-      
+
       // Show success message (would be a toast in a real app)
       alert('Password updated successfully!');
     }
   };
-  
+
   // Array of tabs with their icons and labels
   const tabs = [
     { id: 'account', icon: <FaUser />, label: 'Account' },
@@ -130,11 +138,10 @@ const ProfilePage = () => {
     { id: 'billing', icon: <FaCreditCard />, label: 'Billing' },
     { id: 'certificates', icon: <FaDownload />, label: 'Certificates' }
   ];
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="md:flex md:items-center md:justify-between mb-8">
           <div className="flex-1 min-w-0">
@@ -143,7 +150,7 @@ const ProfilePage = () => {
             </h2>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="md:flex">
             {/* Sidebar */}
@@ -151,7 +158,7 @@ const ProfilePage = () => {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 mr-4">
-                    <img 
+                    <img
                       className="h-16 w-16 rounded-full object-cover border-2 border-indigo-500"
                       src={user.avatar}
                       alt={`${user.firstName} ${user.lastName}`}
@@ -167,36 +174,39 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
-              
+
               <nav className="py-4">
                 <ul>
                   {tabs.map(tab => (
                     <li key={tab.id}>
                       <button
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full text-left px-6 py-3 flex items-center space-x-3 ${
-                          activeTab === tab.id
-                            ? 'text-indigo-600 bg-indigo-50 border-l-4 border-indigo-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                        className={`w-full text-left px-6 py-3 flex items-center space-x-3 ${activeTab === tab.id
+                          ? 'text-indigo-600 bg-indigo-50 border-l-4 border-indigo-600'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
                       >
                         <span className="text-lg">{tab.icon}</span>
                         <span className="font-medium">{tab.label}</span>
                       </button>
                     </li>
                   ))}
-                  
+
                   {/* Sign Out */}
                   <li className="mt-8 px-6">
-                    <button className="w-full text-left py-3 flex items-center space-x-3 text-red-600 hover:text-red-700">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left py-3 flex items-center space-x-3 text-red-600 hover:text-red-700"
+                    >
                       <FaSignOutAlt className="text-lg" />
                       <span className="font-medium">Sign Out</span>
                     </button>
+
                   </li>
                 </ul>
               </nav>
             </div>
-            
+
             {/* Main content */}
             <div className="flex-1 p-6">
               {/* Account Settings */}
@@ -210,7 +220,7 @@ const ProfilePage = () => {
                     <h3 className="text-lg font-medium text-gray-900">Account Settings</h3>
                     <p className="text-sm text-gray-500">Update your personal information and academic details.</p>
                   </div>
-                  
+
                   <form onSubmit={handleAccountSubmit}>
                     <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                       <div className="sm:col-span-3">
@@ -224,16 +234,15 @@ const ProfilePage = () => {
                             id="firstName"
                             value={formData.firstName}
                             onChange={handleInputChange}
-                            className={`block w-full border ${
-                              errors.firstName ? 'border-red-300' : 'border-gray-300'
-                            } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                            className={`block w-full border ${errors.firstName ? 'border-red-300' : 'border-gray-300'
+                              } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                           />
                           {errors.firstName && (
                             <p className="mt-2 text-sm text-red-600">{errors.firstName}</p>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-3">
                         <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
                           Last name
@@ -245,16 +254,15 @@ const ProfilePage = () => {
                             id="lastName"
                             value={formData.lastName}
                             onChange={handleInputChange}
-                            className={`block w-full border ${
-                              errors.lastName ? 'border-red-300' : 'border-gray-300'
-                            } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                            className={`block w-full border ${errors.lastName ? 'border-red-300' : 'border-gray-300'
+                              } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                           />
                           {errors.lastName && (
                             <p className="mt-2 text-sm text-red-600">{errors.lastName}</p>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-4">
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                           Email address
@@ -269,16 +277,15 @@ const ProfilePage = () => {
                             id="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className={`block w-full border ${
-                              errors.email ? 'border-red-300' : 'border-gray-300'
-                            } rounded-md shadow-sm py-2 pl-10 pr-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                            className={`block w-full border ${errors.email ? 'border-red-300' : 'border-gray-300'
+                              } rounded-md shadow-sm py-2 pl-10 pr-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                           />
                           {errors.email && (
                             <p className="mt-2 text-sm text-red-600">{errors.email}</p>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-4">
                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                           Phone number
@@ -294,7 +301,7 @@ const ProfilePage = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-3">
                         <label htmlFor="grade" className="block text-sm font-medium text-gray-700">
                           Grade Level
@@ -314,7 +321,7 @@ const ProfilePage = () => {
                           </select>
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-6">
                         <label htmlFor="school" className="block text-sm font-medium text-gray-700">
                           School
@@ -330,21 +337,21 @@ const ProfilePage = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="sm:col-span-6">
                         <label className="block text-sm font-medium text-gray-700">
                           Academic Interests
                         </label>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {user.interests.map((interest, index) => (
-                            <span 
+                            <span
                               key={index}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
                             >
                               {interest}
                             </span>
                           ))}
-                          <button 
+                          <button
                             type="button"
                             className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
                           >
@@ -353,7 +360,7 @@ const ProfilePage = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6 flex justify-end">
                       <button
                         type="button"
@@ -371,7 +378,7 @@ const ProfilePage = () => {
                   </form>
                 </motion.div>
               )}
-              
+
               {/* Security Settings */}
               {activeTab === 'security' && (
                 <motion.div
@@ -383,12 +390,12 @@ const ProfilePage = () => {
                     <h3 className="text-lg font-medium text-gray-900">Security Settings</h3>
                     <p className="text-sm text-gray-500">Update your password and security preferences.</p>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
                     <div className="p-6 border-b border-gray-200">
                       <h4 className="text-base font-medium text-gray-900">Change Password</h4>
                     </div>
-                    
+
                     <div className="p-6">
                       <form onSubmit={handlePasswordSubmit}>
                         <div className="space-y-4">
@@ -403,16 +410,15 @@ const ProfilePage = () => {
                                 id="currentPassword"
                                 value={formData.currentPassword}
                                 onChange={handleInputChange}
-                                className={`block w-full border ${
-                                  errors.currentPassword ? 'border-red-300' : 'border-gray-300'
-                                } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                className={`block w-full border ${errors.currentPassword ? 'border-red-300' : 'border-gray-300'
+                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                               />
                               {errors.currentPassword && (
                                 <p className="mt-2 text-sm text-red-600">{errors.currentPassword}</p>
                               )}
                             </div>
                           </div>
-                          
+
                           <div>
                             <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
                               New Password
@@ -424,16 +430,15 @@ const ProfilePage = () => {
                                 id="newPassword"
                                 value={formData.newPassword}
                                 onChange={handleInputChange}
-                                className={`block w-full border ${
-                                  errors.newPassword ? 'border-red-300' : 'border-gray-300'
-                                } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                className={`block w-full border ${errors.newPassword ? 'border-red-300' : 'border-gray-300'
+                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                               />
                               {errors.newPassword && (
                                 <p className="mt-2 text-sm text-red-600">{errors.newPassword}</p>
                               )}
                             </div>
                           </div>
-                          
+
                           <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                               Confirm New Password
@@ -445,9 +450,8 @@ const ProfilePage = () => {
                                 id="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
-                                className={`block w-full border ${
-                                  errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                                } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                className={`block w-full border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                               />
                               {errors.confirmPassword && (
                                 <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -455,7 +459,7 @@ const ProfilePage = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="mt-5">
                           <button
                             type="submit"
@@ -467,12 +471,12 @@ const ProfilePage = () => {
                       </form>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
                       <h4 className="text-base font-medium text-gray-900">Two-Factor Authentication</h4>
                     </div>
-                    
+
                     <div className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -484,20 +488,18 @@ const ProfilePage = () => {
                           <button
                             type="button"
                             onClick={() => handleToggleChange('twoFactorAuth')}
-                            className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                              user.twoFactorAuth ? 'bg-indigo-600' : 'bg-gray-200'
-                            }`}
+                            className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.twoFactorAuth ? 'bg-indigo-600' : 'bg-gray-200'
+                              }`}
                           >
                             <span className="sr-only">Toggle two-factor authentication</span>
                             <span
-                              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                                user.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
-                              }`}
+                              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
+                                }`}
                             />
                           </button>
                         </div>
                       </div>
-                      
+
                       {!user.twoFactorAuth && (
                         <div className="mt-4">
                           <button
@@ -513,7 +515,76 @@ const ProfilePage = () => {
                   </div>
                 </motion.div>
               )}
-              
+              {activeTab === 'notifications' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-gray-900">Notification Preferences</h3>
+                    <p className="text-sm text-gray-500">Manage how you want to receive updates from us.</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Email Notifications */}
+                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
+                        <p className="text-sm text-gray-500">Receive updates via email.</p>
+                      </div>
+                      <button
+                        onClick={() => handleToggleChange('emailNotifications')}
+                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.emailNotifications ? 'bg-indigo-600' : 'bg-gray-300'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.emailNotifications ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* SMS Notifications */}
+                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">SMS Notifications</h4>
+                        <p className="text-sm text-gray-500">Receive text messages for important updates.</p>
+                      </div>
+                      <button
+                        onClick={() => handleToggleChange('smsNotifications')}
+                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.smsNotifications ? 'bg-indigo-600' : 'bg-gray-300'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.smsNotifications ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Two-Factor Authentication */}
+                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h4>
+                        <p className="text-sm text-gray-500">Enhance security by enabling 2FA.</p>
+                      </div>
+                      <button
+                        onClick={() => handleToggleChange('twoFactorAuth')}
+                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.twoFactorAuth ? 'bg-indigo-600' : 'bg-gray-300'
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+
               {/* Notifications Settings */}
               {activeTab === 'notifications' && (
                 <motion.div
@@ -525,7 +596,7 @@ const ProfilePage = () => {
                     <h3 className="text-lg font-medium text-gray-900">Notification Settings</h3>
                     <p className="text-sm text-gray-500">Choose how you want to be notified about your courses, assessments, and account activity.</p>
                   </div>
-                  
+
                   <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
                     <ul className="divide-y divide-gray-200">
                       <li className="p-6">
@@ -540,21 +611,19 @@ const ProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => handleToggleChange('emailNotifications')}
-                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                                user.emailNotifications ? 'bg-indigo-600' : 'bg-gray-200'
-                              }`}
+                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.emailNotifications ? 'bg-indigo-600' : 'bg-gray-200'
+                                }`}
                             >
                               <span className="sr-only">Toggle email notifications</span>
                               <span
-                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                                  user.emailNotifications ? 'translate-x-5' : 'translate-x-0'
-                                }`}
+                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.emailNotifications ? 'translate-x-5' : 'translate-x-0'
+                                  }`}
                               />
                             </button>
                           </div>
                         </div>
                       </li>
-                      
+
                       <li className="p-6">
                         <div className="flex items-start justify-between">
                           <div>
@@ -567,15 +636,13 @@ const ProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => handleToggleChange('smsNotifications')}
-                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                                user.smsNotifications ? 'bg-indigo-600' : 'bg-gray-200'
-                              }`}
+                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.smsNotifications ? 'bg-indigo-600' : 'bg-gray-200'
+                                }`}
                             >
                               <span className="sr-only">Toggle SMS notifications</span>
                               <span
-                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
-                                  user.smsNotifications ? 'translate-x-5' : 'translate-x-0'
-                                }`}
+                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.smsNotifications ? 'translate-x-5' : 'translate-x-0'
+                                  }`}
                               />
                             </button>
                           </div>
@@ -585,7 +652,7 @@ const ProfilePage = () => {
                   </div>
                 </motion.div>
               )}
-              
+
               {/* Billing Settings */}
               {activeTab === 'billing' && (
                 <motion.div
@@ -597,12 +664,12 @@ const ProfilePage = () => {
                     <h3 className="text-lg font-medium text-gray-900">Billing & Subscriptions</h3>
                     <p className="text-sm text-gray-500">Manage your payment methods and subscription details.</p>
                   </div>
-                  
+
                   <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
                     <div className="p-6 border-b border-gray-200">
                       <h4 className="text-base font-medium text-gray-900">Current Plan</h4>
                     </div>
-                    
+
                     <div className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -618,12 +685,12 @@ const ProfilePage = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
                     <div className="p-6 border-b border-gray-200">
                       <h4 className="text-base font-medium text-gray-900">Payment Methods</h4>
                     </div>
-                    
+
                     <div className="p-6">
                       <p className="text-sm text-gray-700">No payment methods added yet.</p>
                       <button
@@ -636,7 +703,7 @@ const ProfilePage = () => {
                   </div>
                 </motion.div>
               )}
-              
+
               {/* Certificates */}
               {activeTab === 'certificates' && (
                 <motion.div
@@ -648,17 +715,17 @@ const ProfilePage = () => {
                     <h3 className="text-lg font-medium text-gray-900">Certificates</h3>
                     <p className="text-sm text-gray-500">View and download your earned certificates.</p>
                   </div>
-                  
+
                   <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
                     <div className="p-8 text-center">
-                      <svg 
+                      <svg
                         className="mx-auto h-12 w-12 text-gray-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <path 
+                        <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
@@ -685,8 +752,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
-      
-      <Footer />
+
     </div>
   );
 };
