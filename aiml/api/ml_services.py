@@ -1,18 +1,21 @@
 from flask import Flask, request, jsonify, send_file
 import joblib
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")  # Use a non-GUI backend for matplotlib
 import matplotlib.pyplot as plt
 import os
 
 app = Flask(__name__)
 
 # Directory for reports
-os.makedirs("static/reports", exist_ok=True)
+report_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "reports"))
+os.makedirs(report_dir, exist_ok=True)
 
 # Load ML model and label encoder (if available)
 try:
-    model = joblib.load("models/student_performance_analyzer.pkl")
-    label_enc = joblib.load("models/skill_label_encoder.pkl")
+    model = joblib.load("../models/student_performance_analyzer.pkl")
+    label_enc = joblib.load("../models/skill_label_encoder.pkl")
 except Exception as e:
     model = None
     label_enc = None
@@ -54,7 +57,7 @@ def analyze_result(data):
 def generate_charts(student_id, performance, overall_score):
     urls = {}
     for topic, score in performance.items():
-        path = f"static/reports/{student_id}_{topic}.png"
+        path = os.path.join(report_dir, f"{student_id}_{topic}.png")
         plt.figure()
         plt.bar([topic], [score], color='blue')
         plt.ylim(0, 100)
@@ -66,7 +69,7 @@ def generate_charts(student_id, performance, overall_score):
         urls[topic] = f"http://127.0.0.1:5002/static/reports/{student_id}_{topic}.png"
 
     # Overall chart
-    overall_path = f"static/reports/{student_id}_Overall.png"
+    overall_path = os.path.join(report_dir, f"{student_id}_Overall.png")
     plt.figure()
     plt.bar(["Overall"], [overall_score], color='purple')
     plt.ylim(0, 100)
@@ -86,11 +89,18 @@ def analyze():
     return jsonify(result)
 
 @app.route("/static/reports/<path:filename>")
+@app.route("/static/reports/<path:filename>")
 def serve_image(filename):
-    base_dir = os.path.dirname(os.path.abspath(__file__))  # points to `api/`
-    full_path = os.path.join(base_dir, "static", "reports", filename)
-    print("📂 Full path used:", full_path) 
+    # Resolve the actual static/reports folder one level above this file
+    report_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "reports"))
+    full_path = os.path.join(report_dir, filename)
+    print("📂 Full path used:", full_path)
+
+    if not os.path.exists(full_path):
+        return jsonify({"error": "File not found"}), 404
+
     return send_file(full_path, mimetype="image/png")
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({"message": "AIML server is running!"})
