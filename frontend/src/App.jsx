@@ -35,6 +35,7 @@ const StartAssessPage = lazy(() => import('./pages/StartAssessPage.jsx'))
 const AssessmentResultsPage = lazy(() =>
   import("./pages/AssessmentResultsPage.jsx")
 );
+const AddCourse = lazy(() => import('./pages/AddCourse.jsx'))
 // const AdminProvider = lazy(() => import("./context/AdminContext.jsx"));
 
 
@@ -190,14 +191,19 @@ function App() {
                
               }
             />
+            <Route path='/addCourse'
+            element={
+              <AddCourse/>
+            }
+            />
 
 <Route
               path="/adminPanel"
               element={
                 <ProtectedRoute>
-                <MainLayout>
+                
                   <AdminPanelPage />
-                </MainLayout>
+               
                 </ProtectedRoute>
               }
             />
