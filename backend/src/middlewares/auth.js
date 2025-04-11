@@ -3,7 +3,8 @@ import Student from "../models/StudentModel.js";
 
 export const authenticateUser = async (req, res, next) => {
     const authHeader = req.header("Authorization");
-
+    // console.log(authHeader);
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ error: "Access Denied: No token provided" });
     }
@@ -15,7 +16,8 @@ export const authenticateUser = async (req, res, next) => {
         req.user = await Student.findById(verified.id || verified._id); // Handle both `id` and `_id`
         
         if (!req.user) return res.status(404).json({ error: "User not found" });
-
+        console.log( req.user);
+        
         next();
     } catch (error) {
         res.status(401).json({ error: "Invalid Token" });
