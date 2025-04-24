@@ -7,6 +7,7 @@ import { Admin } from "./models/AdminModel.js";
 import adminRouter from "./routes/adminRoutes.js";
 import fs from "fs";
 import csvParser from "csv-parser";
+import axios from "axios";
 
 dotenv.config();
 
@@ -62,27 +63,41 @@ mongoose
 
   app.get("/api/quiz/:subject", (req, res) => {
     const { subject } = req.params;
+    const { difficulty } = req.query; // Get difficulty from query parameter
+    
     const fileMap = {
       maths: "data/output/maths_quiz.csv",
       physics: "data/output/physics_quiz.csv",
       chemistry: "data/output/chemistry_quiz.csv",
     };
-  
+    
     const filePath = fileMap[subject];
     if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).json({ error: "Quiz data not found" });
     }
-  
+    
     const results = [];
     fs.createReadStream(filePath)
       .pipe(csvParser())
-      .on("data", (data) => results.push(data))
-      .on("end", () => res.json(results))
+      .on("data", (data) => {
+        // Filter by difficulty if specified
+        if (!difficulty || data["Difficulty Level"] === difficulty) {
+          results.push(data);
+        }
+      })
+      .on("end", () => {
+        // Randomize and limit to 50 questions
+        const shuffled = results.sort(() => 0.5 - Math.random());
+        res.json(shuffled.slice(0, 50));
+      })
       .on("error", (err) => res.status(500).json({ error: "Error reading file" }));
   });
+
+
+
   
 
-// Start the Server
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);

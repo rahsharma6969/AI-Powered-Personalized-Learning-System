@@ -9,7 +9,7 @@ const studentRepository = {
   // },
   getByEmail: async function (email) {
     const user = await Student.findOne({ email });
-    console.log(user);
+    // console.log(user);
     
     return user;
     },

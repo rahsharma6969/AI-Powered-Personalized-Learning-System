@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -6,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 import os
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 # Global variables for the model and data
 encoder_dict = {}
@@ -34,7 +36,7 @@ def load_data(survey_data_path, recommendation_data_path):
         data_frames.append(df)
         print(f"Loaded {recommendation_file} successfully!")
     except Exception as e:
-        print(f"Error loading {recommendation_file}: {e}")
+        # print(f"Error loading {recommendation_file}: {e}")
         data_frames.append(pd.DataFrame(columns=['Recommended_Topic']))
 
     return data_frames
@@ -51,13 +53,13 @@ def encode_df(df, reference_dfs):
             if column not in encoder_dict:
                 encoder_dict[column] = LabelEncoder()
                 encoder_dict[column].fit(unique_values)
-                print(f"Encoder for column '{column}' created with classes: {encoder_dict[column].classes_}")  # Debugging print
+                # print(f"Encoder for column '{column}' created with classes: {encoder_dict[column].classes_}")  # Debugging print
 
             df[column] = df[column].apply(
                 lambda x: encoder_dict[column].transform([str(x)])[0]
                 if str(x) in encoder_dict[column].classes_ else -1
             )
-    print("Encoder dictionary after encoding:", encoder_dict)  # Print the entire dictionary
+    # print("Encoder dictionary after encoding:", encoder_dict)  # Print the entire dictionary
     return df
 
 
@@ -110,13 +112,14 @@ def train_knn(combined_df):
         print(f"Error training KNN model: {e}")
         return None, None
 
-
 @app.route('/recommend', methods=['POST'])
 def recommend():
     global knn, X, combined_df
     try:
         data = request.json['responses']
-        encoded_response = []
+        print("Received data:", data)
+
+        encoded_response = []  # <--- 🔥 FIX: initialize the list here
 
         for val, col in zip(data, combined_df.columns[:-1]):
             if col in encoder_dict:
@@ -135,30 +138,25 @@ def recommend():
 
             encoded_response.append(encoded_val)
 
-        # Ensure the encoded response is a numeric array
-        # Ensure the encoded response is a numeric array
         encoded_response = np.array(encoded_response, dtype=np.float64)
-        print("Encoded response (numeric):", encoded_response)  # Debugging print
+        print("Encoded response (numeric):", encoded_response)
 
-# Print encoder classes for debugging
-        print("Encoder classes:", {col: encoder_dict[col].classes_ for col in encoder_dict})  # Add this line here
+        print("Encoder classes:", {col: encoder_dict[col].classes_ for col in encoder_dict})
 
-# Perform KNN to get recommendations
         distances, indices = knn.kneighbors([encoded_response])
         recommended_encoded_topics = combined_df.iloc[indices[0]]['Recommended_Topic']
 
-        # Filter out any invalid encoded topics
         valid_topics = [topic for topic in recommended_encoded_topics if topic != -1]
-        print("Encoder classes:", {col: encoder_dict[col].classes_ for col in encoder_dict})
 
-        # Convert the recommended topics to integers before inverse transforming
         if len(valid_topics) > 0:
             recommended_topics = topic_encoder.inverse_transform(np.array(valid_topics).astype(int))
+            print(jsonify({"recommended_topics": recommended_topics.tolist()}))
             return jsonify({"recommended_topics": recommended_topics.tolist()})
         else:
             return jsonify({"recommended_topics": ["No valid topics found"]})
 
     except Exception as e:
+        print("Error:", e)  # log server-side
         return jsonify({"error": str(e)}), 400
 
 
@@ -171,6 +169,6 @@ if __name__ == '__main__':
     knn, X = train_knn(combined_df)
 
     if knn:
-        app.run(debug=True, host="0.0.0.0", port=5000)
+        app.run(debug=True, host="0.0.0.0", port=5001)
     else:
         print("Failed to start the application: KNN model not trained properly.")

@@ -24,7 +24,7 @@ export const registerStudentController = async (req, res) => {
 
 export const loginStudent = async (req, res) => {
     try {
-        console.log(req.body);
+        // console.log(req.body);
         
         const { email, password } = req.body;
         const { student, token } = await loginStudentService(email, password);
