@@ -831,9 +831,22 @@ const StartAssessmentPage = () => {
                 </h4>
                 <div className="grid grid-cols-3 gap-4">
                   {["easy", "medium", "hard"].map((difficulty) => {
-                    const questionsOfDifficulty = detailedResponses.filter(
-                      (q) => q.difficulty.toLowerCase() === difficulty
-                    );
+                    const questionsOfDifficulty = detailedResponses.filter((q) => {
+                      // Handle numeric difficulty values
+                      if (q.difficulty === 0 || q.difficulty === "0") return difficulty === "easy";
+                      if (q.difficulty === 1 || q.difficulty === "1") return difficulty === "medium";
+                      if (q.difficulty === 2 || q.difficulty === "2") return difficulty === "hard";
+                      
+                      // Also handle text-based difficulty if present
+                      if (typeof q.difficulty === "string") {
+                        const diffLower = q.difficulty.toLowerCase();
+                        if (diffLower.includes("easy")) return difficulty === "easy";
+                        if (diffLower.includes("medium")) return difficulty === "medium";
+                        if (diffLower.includes("hard")) return difficulty === "hard";
+                      }
+                      
+                      return false;
+                    });
                     const correctOfDifficulty = questionsOfDifficulty.filter(
                       (q) => q.isCorrect
                     ).length;
