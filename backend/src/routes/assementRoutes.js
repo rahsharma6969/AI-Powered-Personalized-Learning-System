@@ -27,6 +27,7 @@ router.post("/submit", authenticateUser, async (req, res) => {
       score,
       timeSpent,
       detailedResponses,
+      subTopicStats, // Add this field to receive subTopicStats
     } = req.body;
 
     // Create new assessment result
@@ -38,6 +39,7 @@ router.post("/submit", authenticateUser, async (req, res) => {
       score,
       timeSpent,
       detailedResponses,
+      subTopicStats, // Store the subTopicStats
       completedAt: new Date(),
     });
 
@@ -89,6 +91,45 @@ router.get("/result/:id", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error fetching assessment result:", error);
     res.status(500).json({ error: "Failed to fetch assessment result" });
+  }
+});
+
+
+// Add this endpoint to fetch a specific assessment report
+router.get("/report/:reportId", authenticateUser, async (req, res) => {
+  try {
+    const report = await AssessmentResult.findById(req.params.reportId);
+    
+    if (!report) {
+      return res.status(404).json({ error: "Assessment report not found" });
+    }
+    
+    // Ensure the report belongs to the requesting user
+    if (report.user.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized to view this report" });
+    }
+    
+    res.json(report);
+  } catch (error) {
+    console.error("Error fetching assessment report:", error);
+    res.status(500).json({ error: "Failed to fetch assessment report" });
+  }
+});
+
+// Add an endpoint to fetch all reports for a user
+router.get("/reports", authenticateUser, async (req, res) => {
+  try {
+    // Find all assessment results for the authenticated user
+    // Project only the necessary fields for listing
+    const reports = await AssessmentResult
+      .find({ user: req.user.id })
+      .select('subject totalQuestions correctAnswers score timeSpent subTopicStats completedAt')
+      .sort({ completedAt: -1 });
+    
+    res.json(reports);
+  } catch (error) {
+    console.error("Error fetching user assessment reports:", error);
+    res.status(500).json({ error: "Failed to fetch assessment reports" });
   }
 });
 export default router;

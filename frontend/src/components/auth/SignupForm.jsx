@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { RegisterRequest } from '../../api/auth'; 
+import { useNavigate } from 'react-router-dom';
 
 const SignupForm = ({ onSubmit, className = '' }) => {
   const [formData, setFormData] = useState({
@@ -16,7 +18,9 @@ const SignupForm = ({ onSubmit, className = '' }) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+  const navigate = useNavigate();
+
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -68,15 +72,26 @@ const SignupForm = ({ onSubmit, className = '' }) => {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
     if (validate()) {
-      if (onSubmit) {
-        onSubmit(formData);
+      try {
+        const result = await RegisterRequest({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          password: formData.password,
+        });
+        console.log('Registration successful:', result);
+        navigate('/login'); // Redirect to login page after successful registration
+        // Handle success (redirect or message)
+      } catch (error) {
+        console.error('Registration error:', error.message);
+        setErrors(prev => ({ ...prev, apiError: error.message }));
       }
     }
   };
+  
   
   // Password strength indicators
   const getPasswordStrength = (password) => {

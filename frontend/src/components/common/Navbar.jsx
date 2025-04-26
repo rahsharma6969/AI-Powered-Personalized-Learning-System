@@ -16,8 +16,8 @@ const Navbar = () => {
   
   // Function to get user initials for the profile avatar
   const getUserInitials = () => {
-    if (!user || !user.name) return 'U';
-    const nameParts = user.name.split(' ');
+    if (!user || !user.email) return 'U';
+    const nameParts = user.email.split(' ');
     if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
     return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
   };
@@ -80,7 +80,8 @@ const Navbar = () => {
                     <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
                       {getUserInitials()}
                     </div>
-                    <span className="text-gray-700">{user?.name || 'User'}</span>
+                    <span className="text-gray-700">{user?.name
+                     || 'User'}</span>
                   </button>
                   
                   {/* Dropdown menu */}

@@ -3,11 +3,11 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 export const registerStudentService = async (data) => {
-  const { email, firstName, password } = data;
+  const { email, firstName, lastName, password } = data;
 
-  // Ensure firstName maps to name in the database
+  // Combine firstName and lastName into a full name
   const studentData = {
-    name: firstName,
+    name: `${firstName} ${lastName}`.trim(),  // trimming in case lastName is optional
     email,
     password,
   };
@@ -17,6 +17,7 @@ export const registerStudentService = async (data) => {
 
   return await studentRepository.create(studentData);
 };
+
 
 export const loginStudentService = async (email, password) => {
   const student = await studentRepository.getByEmail(email);

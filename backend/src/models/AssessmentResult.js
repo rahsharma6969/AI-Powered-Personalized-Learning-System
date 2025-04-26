@@ -22,6 +22,30 @@ const detailedResponseSchema = new mongoose.Schema({
   difficulty: {
     type: String,
     default: 'Not specified'
+  },
+  subTopic: {
+    type: String,
+    default: 'Uncategorized'
+  },
+  optionA: String,
+  optionB: String,
+  optionC: String,
+  optionD: String
+}, { _id: false });
+
+// Define a schema for sub-topic statistics
+const subTopicStatSchema = new mongoose.Schema({
+  total: {
+    type: Number,
+    required: true
+  },
+  correct: {
+    type: Number,
+    required: true
+  },
+  percentage: {
+    type: Number,
+    required: true
   }
 }, { _id: false });
 
@@ -52,6 +76,12 @@ const assessmentResultSchema = new mongoose.Schema({
     required: true
   },
   detailedResponses: [detailedResponseSchema],
+  // Store subTopicStats as a Mixed type to handle dynamic keys
+  subTopicStats: {
+    type: Map,
+    of: subTopicStatSchema,
+    default: {}
+  },
   completedAt: {
     type: Date,
     default: Date.now

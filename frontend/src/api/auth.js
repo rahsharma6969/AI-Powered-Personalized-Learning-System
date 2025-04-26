@@ -32,12 +32,13 @@ export const LoginRequest = async (email, password) => {
 
 
 
-export const RegisterRequest = async (name, email, password) => {
+export const RegisterRequest = async ({ name, email, password }) => {
   try {
-    console.log(name,email,password);
+     
+    console.log(name, email, password);
     
     const response = await axios.post(
-      '/students/signup',  // Update the URL as needed
+      '/students/signup',
       { name, email, password },
       {
         headers: {
@@ -45,7 +46,7 @@ export const RegisterRequest = async (name, email, password) => {
         },
       }
     );
-    return response.data;  // Expected to contain a success message or token
+    return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'User registration failed');
   }

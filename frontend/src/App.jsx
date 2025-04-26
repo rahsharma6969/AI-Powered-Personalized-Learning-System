@@ -14,8 +14,9 @@ import { useAdmin } from "./hooks/useAdmin.js";
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import LoadingSpinner from "./components/common/LoadingSpinner";
-
-//Admin
+import DetailedReportPage from "./components/dashboard/DetailedReport.jsx";
+import AssessmentReportsList from "./components/dashboard/AssessmentReportList.jsx";
+// import CourseDetailsPage from "./pages/CourseDetailPage";
 import AdminPanelPage from "./pages/AdminPanel.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 // Lazy load pages for better performance
@@ -24,7 +25,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
-const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
+const CourseDetailsPage = lazy(() => import("./pages/CourseDetailPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const PreAssessmentPage = lazy(() => import("./pages/PreAssessmentPage"));
 const AssessmentPage = lazy(() => import("./pages/AssessmentPage"));
@@ -62,18 +63,7 @@ export const ProtectedRoute = ({ children, requireAdmin = false }) => {
   return children;
 };
 
-// Main layout component with Navbar and Footer
-// const MainLayout = ({ children, hideFooter = false }) => {
-//   const { admin } = useAdmin(); // Check if the user is an admin
 
-//   return (
-//     <div className="min-h-screen flex flex-col">
-//       {!admin && <Navbar />} {/* Hide Navbar if admin is logged in */}
-//       <div className="flex-grow">{children}</div>
-//       {!hideFooter && <Footer />}
-//     </div>
-//   );
-// };
 
 const MainLayout = ({ children, hideFooter = false }) => {
   return (
@@ -132,14 +122,10 @@ function App() {
                 </MainLayout>
               }
             />
-            <Route
-              path="/courses/:id"
-              element={
-                <MainLayout>
-                  <CourseDetailPage />
-                </MainLayout>
-              }
-            />
+            <Route path="/courses/:courseId" 
+            element= 
+            { <CourseDetailsPage /> }  />
+            
             <Route
               path="/assessment"
               element={
@@ -249,7 +235,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+           <Route 
+           path="/assessment/report/:reportId" 
+           element= {<DetailedReportPage />} 
+           />
+           <Route 
+           path="/reports"
+            element=
+            {<AssessmentReportsList />} />
 
+            
             {/* Catch all - 404 page */}
             <Route
               path="*"

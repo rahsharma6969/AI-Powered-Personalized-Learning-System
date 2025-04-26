@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaSortAmountDown } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import CourseCard from '../components/courses/CourseCard';
+
 import CourseFilter from '../components/courses/CourseFilter';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import ModifiedCourseCard from '../components/courses/CourseCard';
+import { useNavigate } from 'react-router-dom';
+
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -16,122 +19,187 @@ const CoursesPage = () => {
   useEffect(() => {
     // Simulating API call to fetch courses
     setTimeout(() => {
-      // Mock data
+      // Mock data - Only Physics, Chemistry and Math courses for 11th and 12th
       const mockCourses = [
         {
           id: 1,
-          title: 'Advanced Mathematics for High School Students',
-          description: 'Master advanced mathematical concepts with this comprehensive course designed for high school students preparing for college entrance exams.',
-          thumbnail: 'https://placehold.co/600x400/indigo/white?text=Mathematics',
+          title: '11th Grade Mathematics: Algebra & Calculus Foundations',
+          description: 'Master key mathematical concepts for 11th grade including functions, limits, and introduction to calculus with practice problems and step-by-step solutions.',
+          thumbnail: 'https://placehold.co/600x400/indigo/white?text=Math+11',
           category: 'Mathematics',
-          level: 'Advanced',
-          rating: 4.7,
-          reviewsCount: 245,
-          studentsCount: 12560,
-          price: 49.99,
-          discountPrice: 39.99,
-          duration: '5h 30m',
-          instructor: 'Dr. Jane Smith'
+          level: 'Intermediate',
+          rating: 4.8,
+          reviewsCount: 312,
+          studentsCount: 14560,
+          isFree: true,
+          duration: '8h 45m',
+          instructor: 'Dr. Jane Smith',
+          grade: '11th'
         },
         {
           id: 2,
-          title: 'Physics Fundamentals: Motion, Energy & Forces',
-          description: 'Build a strong foundation in physics principles with practical examples and interactive simulations.',
-          thumbnail: 'https://placehold.co/600x400/orange/white?text=Physics',
-          category: 'Physics',
-          level: 'Intermediate',
-          rating: 4.5,
-          reviewsCount: 187,
-          studentsCount: 8753,
-          price: 44.99,
-          duration: '7h 45m',
-          instructor: 'Prof. Robert Johnson'
+          title: '12th Grade Mathematics: Advanced Calculus & Statistics',
+          description: 'Complete preparation for 12th grade mathematics exams with advanced calculus, probability, and statistics modules designed for college readiness.',
+          thumbnail: 'https://placehold.co/600x400/indigo/white?text=Math+12',
+          category: 'Mathematics',
+          level: 'Advanced',
+          rating: 4.9,
+          reviewsCount: 245,
+          studentsCount: 12780,
+          isFree: true,
+          duration: '10h 30m',
+          instructor: 'Prof. David Wilson',
+          grade: '12th'
         },
         {
           id: 3,
-          title: 'Chemistry: Understanding Atomic Structure',
-          description: 'Explore the fascinating world of atoms, elements, and chemical reactions in this comprehensive chemistry course.',
-          thumbnail: 'https://placehold.co/600x400/green/white?text=Chemistry',
-          category: 'Chemistry',
-          level: 'Beginner',
-          rating: 4.8,
-          reviewsCount: 156,
-          studentsCount: 5421,
-          price: 39.99,
-          duration: '6h 15m',
-          instructor: 'Dr. Emily Chang'
+          title: '11th Grade Physics: Mechanics & Thermodynamics',
+          description: 'Build a strong foundation in physics principles with practical examples, interactive simulations, and problem-solving techniques focused on mechanics and thermodynamics.',
+          thumbnail: 'https://placehold.co/600x400/orange/white?text=Physics+11',
+          category: 'Physics',
+          level: 'Intermediate',
+          rating: 4.7,
+          reviewsCount: 187,
+          studentsCount: 9753,
+          isFree: true,
+          duration: '9h 15m',
+          instructor: 'Prof. Robert Johnson',
+          grade: '11th'
         },
         {
           id: 4,
-          title: 'Introduction to Programming with Python',
-          description: 'Learn the fundamentals of programming using Python, one of the most popular and versatile programming languages.',
-          thumbnail: 'https://placehold.co/600x400/blue/white?text=Programming',
-          category: 'Computer Science',
-          level: 'Beginner',
-          rating: 4.9,
-          reviewsCount: 312,
-          studentsCount: 18945,
-          price: 54.99,
-          discountPrice: 44.99,
-          duration: '8h 20m',
-          instructor: 'Alex Davidson'
+          title: '12th Grade Physics: Electromagnetism & Modern Physics',
+          description: 'Master electricity, magnetism, optics, and modern physics concepts with experimental demonstrations and exam preparation strategies.',
+          thumbnail: 'https://placehold.co/600x400/orange/white?text=Physics+12',
+          category: 'Physics',
+          level: 'Advanced',
+          rating: 4.6,
+          reviewsCount: 203,
+          studentsCount: 8945,
+          isFree: true,
+          duration: '11h 20m',
+          instructor: 'Dr. Alan Richards',
+          grade: '12th'
         },
         {
           id: 5,
-          title: 'Biology: The Science of Life',
-          description: 'Discover the amazing world of living organisms, from cells to ecosystems, in this comprehensive biology course.',
-          thumbnail: 'https://placehold.co/600x400/purple/white?text=Biology',
-          category: 'Biology',
+          title: '11th Grade Chemistry: Organic Chemistry Fundamentals',
+          description: 'Explore the fascinating world of organic chemistry, chemical bonding, and stoichiometry with interactive molecular visualizations and practice problems.',
+          thumbnail: 'https://placehold.co/600x400/green/white?text=Chemistry+11',
+          category: 'Chemistry',
           level: 'Intermediate',
-          rating: 4.6,
-          reviewsCount: 203,
-          studentsCount: 7629,
-          price: 49.99,
-          duration: '9h 10m',
-          instructor: 'Dr. Sarah Williams'
+          rating: 4.8,
+          reviewsCount: 156,
+          studentsCount: 7421,
+          isFree: true,
+          duration: '7h 30m',
+          instructor: 'Dr. Emily Chang',
+          grade: '11th'
         },
         {
           id: 6,
-          title: 'English Literature: Analyzing Classic Texts',
-          description: 'Develop critical reading and analysis skills by studying classic works of literature from different periods and traditions.',
-          thumbnail: 'https://placehold.co/600x400/pink/white?text=Literature',
-          category: 'English',
+          title: '12th Grade Chemistry: Physical Chemistry & Equilibrium',
+          description: 'Master advanced chemistry concepts including chemical equilibrium, thermodynamics, and electrochemistry with real-world applications and exam preparation.',
+          thumbnail: 'https://placehold.co/600x400/green/white?text=Chemistry+12',
+          category: 'Chemistry',
           level: 'Advanced',
           rating: 4.7,
-          reviewsCount: 175,
-          studentsCount: 6234,
-          price: 42.99,
-          duration: '7h 30m',
-          instructor: 'Prof. Michael Taylor'
+          reviewsCount: 189,
+          studentsCount: 6890,
+          isFree: true,
+          duration: '9h 45m',
+          instructor: 'Prof. Sarah Williams',
+          grade: '12th'
         },
         {
           id: 7,
-          title: 'Statistics and Data Analysis',
-          description: 'Learn essential statistical concepts and data analysis techniques used in research, business, and everyday decision-making.',
-          thumbnail: 'https://placehold.co/600x400/cyan/white?text=Statistics',
+          title: 'Mathematics: Trigonometry & Coordinate Geometry for 11th Grade',
+          description: 'Comprehensive coverage of trigonometric functions, identities, and coordinate geometry with visualization tools and exam-focused problem sets.',
+          thumbnail: 'https://placehold.co/600x400/indigo/white?text=Trigonometry',
           category: 'Mathematics',
           level: 'Intermediate',
           rating: 4.5,
-          reviewsCount: 219,
-          studentsCount: 9872,
-          price: 0,
-          duration: '6h 45m',
-          instructor: 'Dr. Kevin Matthews'
+          reviewsCount: 178,
+          studentsCount: 8120,
+          isFree: true,
+          duration: '6h 50m',
+          instructor: 'Dr. Kevin Matthews',
+          grade: '11th'
         },
         {
           id: 8,
-          title: 'Web Development Fundamentals',
-          description: 'Build responsive websites from scratch using HTML, CSS, and JavaScript, the core technologies of the web.',
-          thumbnail: 'https://placehold.co/600x400/red/white?text=Web+Dev',
-          category: 'Computer Science',
-          level: 'Beginner',
+          title: 'Physics: Waves & Optics for 12th Grade',
+          description: 'Detailed exploration of wave phenomena, sound, light, and optical instruments with interactive simulations and problem-solving strategies.',
+          thumbnail: 'https://placehold.co/600x400/orange/white?text=Optics',
+          category: 'Physics',
+          level: 'Advanced',
           rating: 4.8,
-          reviewsCount: 287,
-          studentsCount: 15623,
-          price: 59.99,
-          discountPrice: 49.99,
+          reviewsCount: 167,
+          studentsCount: 5923,
+          isFree: true,
+          duration: '7h 15m',
+          instructor: 'Dr. Michelle Parker',
+          grade: '12th'
+        },
+        {
+          id: 9,
+          title: 'Chemistry: Periodic Table & Chemical Bonds for 11th Grade',
+          description: 'Deep dive into the periodic table trends, chemical bonding theories, and molecular structures with 3D visualizations and practice assessments.',
+          thumbnail: 'https://placehold.co/600x400/green/white?text=Periodic+Table',
+          category: 'Chemistry',
+          level: 'Intermediate',
+          rating: 4.6,
+          reviewsCount: 142,
+          studentsCount: 6245,
+          isFree: true,
+          duration: '8h 10m',
+          instructor: 'Prof. Thomas Lee',
+          grade: '11th'
+        },
+        {
+          id: 10,
+          title: 'Mathematics: Vectors & 3D Geometry for 12th Grade',
+          description: 'Master vector algebra, 3D coordinate systems, and spatial geometry with interactive tools and exam-focused problem solving techniques.',
+          thumbnail: 'https://placehold.co/600x400/indigo/white?text=Vectors',
+          category: 'Mathematics',
+          level: 'Advanced',
+          rating: 4.7,
+          reviewsCount: 198,
+          studentsCount: 7645,
+          isFree: true,
+          duration: '9h 20m',
+          instructor: 'Dr. Rachel Cohen',
+          grade: '12th'
+        },
+        {
+          id: 11,
+          title: 'Physics: Rotational Dynamics for 11th Grade',
+          description: 'Comprehensive coverage of rotational motion, torque, angular momentum, and moment of inertia with practical demonstrations and solved examples.',
+          thumbnail: 'https://placehold.co/600x400/orange/white?text=Rotation',
+          category: 'Physics',
+          level: 'Intermediate',
+          rating: 4.5,
+          reviewsCount: 132,
+          studentsCount: 5842,
+          isFree: true,
+          duration: '6h 40m',
+          instructor: 'Prof. James Wilson',
+          grade: '11th'
+        },
+        {
+          id: 12,
+          title: 'Chemistry: Organic Reactions & Mechanisms for 12th Grade',
+          description: 'Detailed exploration of organic reaction mechanisms, functional groups, and synthesis strategies with practice problems and visualization tools.',
+          thumbnail: 'https://placehold.co/600x400/green/white?text=Organic',
+          category: 'Chemistry',
+          level: 'Advanced',
+          rating: 4.8,
+          reviewsCount: 157,
+          studentsCount: 6130,
+          isFree: true,
           duration: '10h 15m',
-          instructor: 'Jennifer Lee'
+          instructor: 'Dr. Olivia Martinez',
+          grade: '12th'
         }
       ];
       
@@ -147,7 +215,8 @@ const CoursesPage = () => {
       const filtered = courses.filter(course => 
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.category.toLowerCase().includes(searchTerm.toLowerCase())
+        course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.grade.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredCourses(filtered);
     } else {
@@ -174,20 +243,6 @@ const CoursesPage = () => {
         // In a real app, you would sort by date
         sorted.sort((a, b) => b.id - a.id);
         break;
-      case 'priceLowToHigh':
-        sorted.sort((a, b) => {
-          const priceA = a.discountPrice || a.price;
-          const priceB = b.discountPrice || b.price;
-          return priceA - priceB;
-        });
-        break;
-      case 'priceHighToLow':
-        sorted.sort((a, b) => {
-          const priceA = a.discountPrice || a.price;
-          const priceB = b.discountPrice || b.price;
-          return priceB - priceA;
-        });
-        break;
       default:
         break;
     }
@@ -212,13 +267,11 @@ const CoursesPage = () => {
       );
     }
     
-    // Filter by price
-    if (filters.price) {
-      if (filters.price === 'free') {
-        filtered = filtered.filter(course => course.price === 0);
-      } else if (filters.price === 'paid') {
-        filtered = filtered.filter(course => course.price > 0);
-      }
+    // Filter by grade
+    if (filters.grades && filters.grades.length > 0) {
+      filtered = filtered.filter(course => 
+        filters.grades.includes(course.grade.toLowerCase())
+      );
     }
     
     // Filter by rating
@@ -238,11 +291,11 @@ const CoursesPage = () => {
         const durationMinutes = getDurationInMinutes(course.duration);
         
         if (filters.duration === 'short') {
-          return durationMinutes < 180; // Less than 3 hours
+          return durationMinutes < 300; // Less than 5 hours
         } else if (filters.duration === 'medium') {
-          return durationMinutes >= 180 && durationMinutes <= 600; // 3-10 hours
+          return durationMinutes >= 300 && durationMinutes <= 540; // 5-9 hours
         } else if (filters.duration === 'long') {
-          return durationMinutes > 600; // More than 10 hours
+          return durationMinutes > 540; // More than 9 hours
         }
         
         return true;
@@ -252,6 +305,60 @@ const CoursesPage = () => {
     setFilteredCourses(filtered);
   };
 
+  // Custom CourseCard component modified to remove price and show "Enroll for Free"
+  const ModifiedCourseCard = ({ course }) => {
+    const navigate = useNavigate();
+
+  const handleEnrollClick = () => {
+    // Navigate to the course details page when "Enroll for Free" is clicked
+    navigate(`/courses/${course.id}`);
+  };
+    return (
+      <motion.div 
+      className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.3 }}
+    >
+        <div className="relative h-48">
+          <img 
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-2 right-2 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2 py-1 rounded-full">
+            {course.grade} Grade
+          </div>
+        </div>
+        
+        <div className="p-5">
+          <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">{course.title}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{course.description}</p>
+          
+          <div className="flex items-center mb-3">
+            <span className="text-yellow-500 mr-1">★</span>
+            <span className="font-medium text-gray-900">{course.rating.toFixed(1)}</span>
+            <span className="text-gray-500 text-sm ml-1">({course.reviewsCount} reviews)</span>
+          </div>
+          
+          <div className="flex items-center text-gray-600 text-sm mb-4">
+            <span className="mr-3">{course.instructor}</span>
+            <span>{course.duration}</span>
+          </div>
+          
+          <div className="flex justify-between items-center mt-auto">
+        <span className="text-sm text-gray-500">{course.studentsCount.toLocaleString()} students</span>
+        <button 
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
+          onClick={handleEnrollClick}
+        >
+          Enroll for Free
+        </button>
+      </div>
+      </div>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* <Navbar /> */}
@@ -259,10 +366,11 @@ const CoursesPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-indigo-700 rounded-xl p-8 mb-8">
           <div className="max-w-3xl">
-            <h1 className="text-3xl font-bold text-white mb-4">Explore Courses</h1>
+            <h1 className="text-3xl font-bold text-white mb-4">11th & 12th Grade Science Courses</h1>
             <p className="text-indigo-100 mb-6">
-              Discover a wide range of courses designed to help you excel in your studies. 
-              From mathematics to science, programming to literature, find the perfect course for your learning journey.
+              Discover free specialized courses in Physics, Chemistry, and Mathematics designed specifically 
+              for 11th and 12th grade students. Master key concepts and prepare for exams with our 
+              comprehensive courses taught by expert educators.
             </p>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -271,7 +379,7 @@ const CoursesPage = () => {
               <input
                 type="text"
                 className="block w-full bg-white pl-10 pr-3 py-3 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-700"
-                placeholder="Search for courses, subjects, or keywords..."
+                placeholder="Search for Physics, Chemistry, or Math courses..."
                 value={searchTerm}
                 onChange={handleSearch}
               />
@@ -284,7 +392,11 @@ const CoursesPage = () => {
           <div className="hidden md:block md:w-64 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
-              <CourseFilter onApplyFilters={handleFilterApply} />
+              <CourseFilter 
+                onApplyFilters={handleFilterApply} 
+                subjects={['physics', 'chemistry', 'mathematics']} 
+                grades={['11th', '12th']}
+              />
             </div>
           </div>
           
@@ -304,9 +416,7 @@ const CoursesPage = () => {
                   <FaSortAmountDown className="mr-2" />
                   Sort by: {sortOption === 'popular' ? 'Most Popular' : 
                              sortOption === 'highestRated' ? 'Highest Rated' :
-                             sortOption === 'newest' ? 'Newest' :
-                             sortOption === 'priceLowToHigh' ? 'Price: Low to High' :
-                             'Price: High to Low'}
+                             'Newest'}
                 </button>
                 
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 hidden">
@@ -329,18 +439,6 @@ const CoursesPage = () => {
                     >
                       Newest
                     </button>
-                    <button 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => handleSort('priceLowToHigh')}
-                    >
-                      Price: Low to High
-                    </button>
-                    <button 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => handleSort('priceHighToLow')}
-                    >
-                      Price: High to Low
-                    </button>
                   </div>
                 </div>
               </div>
@@ -361,7 +459,7 @@ const CoursesPage = () => {
                     key={index} 
                     className="bg-white rounded-lg shadow-sm h-96 animate-pulse"
                   >
-                    <div className="h-40 bg-gray-300 rounded-t-lg"></div>
+                    <div className="h-48 bg-gray-300 rounded-t-lg"></div>
                     <div className="p-4">
                       <div className="h-4 bg-gray-300 rounded mb-4 w-3/4"></div>
                       <div className="h-4 bg-gray-300 rounded mb-2 w-full"></div>
@@ -381,7 +479,7 @@ const CoursesPage = () => {
                   transition={{ duration: 0.5 }}
                 >
                   {filteredCourses.map(course => (
-                    <CourseCard key={course.id} course={course} />
+                    <ModifiedCourseCard key={course.id} course={course} />
                   ))}
                 </motion.div>
               ) : (
@@ -431,15 +529,6 @@ const CoursesPage = () => {
                   </button>
                   <button className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                     2
-                  </button>
-                  <button className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    3
-                  </button>
-                  <span className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                    ...
-                  </span>
-                  <button className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    8
                   </button>
                   <button className="inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-r-md">
                     Next
