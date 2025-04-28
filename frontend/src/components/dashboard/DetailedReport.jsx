@@ -5,38 +5,117 @@ import axios from 'axios';
 import useAuth from '../../hooks/useAuth'; // Adjust path as needed
 
 const DetailedReportPage = () => {
+  console.log("DetailedReportPage component is mounting");
   const { reportId } = useParams();
+  console.log("Report ID from URL:", reportId);
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('summary');
   const { user } = useAuth(); // Use your auth hook
-
+  
+  // Check authentication status early
   useEffect(() => {
+    // Check for reportId immediately
+    if (!reportId || reportId === 'undefined') {
+      console.log("Invalid reportId detected, redirecting to assessments list");
+      navigate('/assessments');
+      return;
+    }
+    
     const fetchReport = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
+        // Rest of your existing fetch code
+      } catch (error) {
+        // Existing error handling
+      }
+    };
+  
+    fetchReport();
+  }, [reportId, navigate]);
 
+  useEffect(() => {
+    console.log("Report fetch useEffect triggered");
+    const fetchReport = async () => {
+      // Add validation for reportId
+      if (!reportId || reportId === 'undefined') {
+        console.log("Invalid reportId detected, redirecting to assessments list");
+        navigate('/assessments'); // Redirect instead of setting error
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        console.log("Attempting to fetch report with ID:", reportId);
+        
+        // Create proper headers
+        const headers = { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+        console.log("Request headers:", headers);
+        
+        // Make API request with detailed logging
+        console.log(`Making request to: http://localhost:5000/api/assessments/report/${reportId}`);
         const response = await axios.get(`http://localhost:5000/api/assessments/report/${reportId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers
         });
         
+        console.log("API Response Status:", response.status);
+        console.log("API Response Data:", response.data);
+        
         setReport(response.data);
+        console.log("Report state updated");
       } catch (error) {
         console.error("Error fetching report:", error);
-        setError("Failed to load the assessment report. Please try again.");
+        
+        // Detailed error logging
+        if (error.response) {
+          console.error("Error response status:", error.response.status);
+          console.error("Error response data:", error.response.data);
+          
+          // More specific error messages based on the error
+          if (error.response.status === 404) {
+            setError("Report not found. It may have been deleted or you don't have permission to view it.");
+          } else if (error.response.status === 403) {
+            setError("You don't have permission to access this report.");
+          } else if (error.response.status === 401) {
+            // Unauthorized - redirect to login
+            console.log("Authentication failed, redirecting to login");
+            navigate('/login');
+            return;
+          } else {
+            setError(`Failed to load the assessment report: ${error.response.data.error || 'Unknown error'}`);
+          }
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No response received:", error.request);
+          setError("Cannot connect to the server. Please check your internet connection and try again.");
+        } else {
+          // Something happened in setting up the request
+          console.error("Request setup error:", error.message);
+          setError("An error occurred while preparing the request. Please try again.");
+        }
       } finally {
         setLoading(false);
+        console.log("Loading state set to false");
       }
     };
 
     fetchReport();
   }, [reportId, navigate]);
+
+  // Log render state
+  useEffect(() => {
+    console.log("Current render state:", {
+      loading,
+      hasReport: !!report,
+      hasError: !!error,
+      activeTab
+    });
+  }, [loading, report, error, activeTab]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -64,7 +143,10 @@ const DetailedReportPage = () => {
     return "bg-gray-200 text-gray-800";
   };
 
+  console.log("Rendering DetailedReportPage component");
+  
   if (loading) {
+    console.log("Rendering loading state");
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="animate-spin w-12 h-12 text-blue-500" />
@@ -73,25 +155,69 @@ const DetailedReportPage = () => {
   }
 
   if (error) {
+    console.log("Rendering error state:", error);
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>{error}</p>
+        <div className="flex items-center mb-6">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="mr-4 p-2 rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold">Assessment Report Error</h1>
+        </div>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-start">
+          <div className="flex-shrink-0 mr-3">
+            <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium">{error}</p>
+            <p className="mt-2">
+              <button 
+                onClick={() => navigate('/assessments')} 
+                className="text-red-700 underline hover:text-red-800"
+              >
+                Return to Assessments
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!report) {
+    console.log("Rendering no report state");
     return (
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center mb-6">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="mr-4 p-2 rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold">Report Not Found</h1>
+        </div>
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          <p>Report not found.</p>
+          <p>Report not found or no longer available.</p>
+          <p className="mt-2">
+            <button 
+              onClick={() => navigate('/assessments')} 
+              className="text-yellow-700 underline hover:text-yellow-800"
+            >
+              Return to Assessments
+            </button>
+          </p>
         </div>
       </div>
     );
   }
 
+  console.log("Rendering report content");
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center mb-6">
@@ -250,34 +376,42 @@ const DetailedReportPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {report.detailedResponses.map((response, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {response.question}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {response.subTopic || 'Uncategorized'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getDifficultyColor(response.difficulty)}`}>
-                          {response.difficulty}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {response.userAnswer || "Not answered"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {response.correctAnswer}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                          response.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {response.isCorrect ? '✓' : '✗'}
-                        </span>
+                  {report.detailedResponses && report.detailedResponses.length > 0 ? (
+                    report.detailedResponses.map((response, index) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {response.question}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {response.subTopic || 'Uncategorized'}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getDifficultyColor(response.difficulty)}`}>
+                            {response.difficulty || 'Medium'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {response.userAnswer || "Not answered"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {response.correctAnswer}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
+                            response.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {response.isCorrect ? '✓' : '✗'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
+                        No detailed response data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

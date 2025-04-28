@@ -16,6 +16,7 @@ import Footer from "./components/common/Footer";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 import DetailedReportPage from "./components/dashboard/DetailedReport.jsx";
 import AssessmentReportsList from "./components/dashboard/AssessmentReportList.jsx";
+import AssessmentList from "./components/dashboard/AssessmentList.jsx";
 // import CourseDetailsPage from "./pages/CourseDetailPage";
 import AdminPanelPage from "./pages/AdminPanel.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
@@ -235,10 +236,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route 
+            path="/assessments" 
+            element={<AssessmentList />}
+             />
+
+
            <Route 
-           path="/assessment/report/:reportId" 
+           path="/assessment/reports/:reportId" 
            element= {<DetailedReportPage />} 
            />
+
            <Route 
            path="/reports"
             element=

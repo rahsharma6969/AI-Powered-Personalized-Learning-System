@@ -28,6 +28,10 @@ import {
   FaChevronRight,
   FaLaptop,
   FaFileAlt,
+  FaRoad,
+  FaLightbulb,
+  FaTrophy,
+  FaArrowRight,
 } from "react-icons/fa";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +44,11 @@ const DashboardPage = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Roadmap state
+  const [roadmap, setRoadmap] = useState(null);
+  const [roadmapLoading, setRoadmapLoading] = useState(false);
+  const [roadmapError, setRoadmapError] = useState(null);
 
   // Data states for different charts
   const [progressData, setProgressData] = useState([]);
@@ -101,6 +110,48 @@ const DashboardPage = () => {
     fetchAssessmentResults();
   }, []);
 
+  // Fetch roadmap data when roadmap tab is selected
+  useEffect(() => {
+    if (activeTab === "roadmap") {
+      fetchRoadmap();
+    }
+  }, [activeTab]);
+
+ // Function to fetch roadmap data
+const fetchRoadmap = async () => {
+  try {
+    setRoadmapLoading(true);
+    setRoadmapError(null);
+    const token = localStorage.getItem("token");
+    const userId = user?.id;
+
+    if (!token) {
+      setRoadmapError("Authentication token not found");
+      setRoadmapLoading(false);
+      return;
+    }
+
+    const response = await axios.get(
+      `http://localhost:5001/api/generate-roadmap/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("Roadmap response:", response.data);
+    
+    // Extract the nested roadmap object from response.data
+    setRoadmap(response.data.roadmap);
+  } catch (error) {
+    console.error("Error fetching roadmap:", error);
+    setRoadmapError("Failed to load roadmap data");
+  } finally {
+    setRoadmapLoading(false);
+  }
+};
+
+
   // Process assessment data for different charts
   const processAssessmentData = (data) => {
     if (!data || data.length === 0) return;
@@ -143,9 +194,6 @@ const DashboardPage = () => {
 
     setSkillsData(skillsRadarData);
 
-    const handleViewDetails = (assessmentId) => {
-      navigate(`/assessment/report/${assessmentId}`);
-    };
     // Course progress (bar chart)
     const subjectProgress = Object.keys(subjectScores).map((subject) => ({
       name: subject.charAt(0).toUpperCase() + subject.slice(1),
@@ -195,6 +243,12 @@ const DashboardPage = () => {
     });
   };
 
+  const handleViewDetails = (reportId) => {
+    console.log("Navigating to report with ID:", reportId);
+    navigate(`/assessment/reports/${reportId}`);
+  
+  };
+
   const COLORS = ["#10B981", "#6366F1", "#EC4899", "#9CA3AF"];
 
   const containerVariants = {
@@ -217,7 +271,6 @@ const DashboardPage = () => {
   };
 
   // Get upcoming assessments - this would normally come from your backend
-  // You might want to create a separate endpoint for this
   const upcomingAssessments = [
     {
       id: 1,
@@ -233,6 +286,142 @@ const DashboardPage = () => {
     },
   ];
 
+  // Render Roadmap content
+ 
+  const renderRoadmap = () => {
+    // Add debugging to see what data we're working with
+    console.log("Roadmap state:", roadmap);
+    console.log("Recommended Courses:", roadmap?.recommendedCourses);
+    console.log("Weak Areas:", roadmap?.weakAreas);
+    
+    if (roadmapLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+      );
+    }
+    
+    if (roadmapError) {
+      return (
+        <div className="p-6 bg-red-50 rounded-lg">
+          <p className="text-red-500 text-center">{roadmapError}</p>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={fetchRoadmap}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Check if roadmap data exists at all
+    if (!roadmap) {
+      return (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <FaRoad className="mx-auto text-4xl text-gray-400 mb-4" />
+          <h3 className="text-xl font-medium text-gray-800 mb-2">No Roadmap Available Yet</h3>
+          <p className="text-gray-600 mb-4">
+            Generate a personalized learning roadmap based on your assessment results to guide your studies.
+          </p>
+          <button
+            onClick={fetchRoadmap}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Generate Your Roadmap
+          </button>
+        </div>
+      );
+    }
+    
+    // Check if recommendedCourses exists
+    if (!roadmap.recommendedCourses) {
+      return (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <FaRoad className="mx-auto text-4xl text-gray-400 mb-4" />
+          <h3 className="text-xl font-medium text-gray-800 mb-2">Roadmap Data Structure Issue</h3>
+          <p className="text-gray-600 mb-4">
+            We received your roadmap data but couldn't find course recommendations.
+          </p>
+          <button
+            onClick={fetchRoadmap}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+    
+    // If recommendedCourses is empty but we have weakAreas
+    if (roadmap.recommendedCourses.length === 0 && roadmap.weakAreas && roadmap.weakAreas.length > 0) {
+      return (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <h3 className="text-xl font-medium text-gray-800 mb-2">No Recommended Courses</h3>
+          <p className="text-gray-600 mb-4">
+            We found your weak areas but don't have specific course recommendations yet.
+          </p>
+          <div className="mt-4">
+            <h4 className="font-semibold mb-2">Focus Areas:</h4>
+            <ul className="list-disc pl-6 text-left max-w-md mx-auto">
+              {roadmap.weakAreas.map((area, index) => (
+                <li key={index} className="text-gray-700">{area}</li>
+              ))}
+            </ul>
+          </div>
+          <button
+            onClick={fetchRoadmap}
+            className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Refresh Roadmap
+          </button>
+        </div>
+      );
+    }
+    
+    // If we have recommendedCourses, display them
+    return (
+      <div className="space-y-8">
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Your Learning Roadmap</h3>
+          
+          {roadmap.weakAreas && roadmap.weakAreas.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-amber-800 mb-2">Areas to Focus On:</h4>
+              <div className="flex flex-wrap gap-2">
+                {roadmap.weakAreas.map((area, index) => (
+                  <span key={index} className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Recommended Courses</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {roadmap.recommendedCourses.map((course) => (
+            <div key={course.id || index} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+              <h4 className="text-xl font-semibold text-indigo-700 mb-2">{course.category || course.title}</h4>
+              <p className="text-gray-700 mb-4">{course.description}</p>
+              {course.grade && <div className="text-sm text-gray-600 mb-2">Grade: {course.grade}</div>}
+              {course.duration && <div className="text-sm text-gray-600 mb-4">Duration: {course.duration}</div>}
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                Explore Course
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+  
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -247,7 +436,7 @@ const DashboardPage = () => {
             <div className="flex items-center space-x-4 mb-8">
               <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center">
                 <span className="text-xl font-bold text-white">
-                  {user ? user.email?.charAt(0).toUpperCase || "U" : "U"}
+                  {user ? user.email?.charAt(0).toUpperCase() || "U" : "U"}
                 </span>
               </div>
               <div>
@@ -279,9 +468,9 @@ const DashboardPage = () => {
                     icon: <FaFileAlt className="mr-2" />,
                   },
                   {
-                    id: "recommendations",
-                    label: "Recommendations",
-                    icon: <FaChevronRight className="mr-2" />,
+                    id: "roadmap",
+                    label: "Learning Roadmap",
+                    icon: <FaRoad className="mr-2" />,
                   },
                   {
                     id: "settings",
@@ -323,7 +512,7 @@ const DashboardPage = () => {
                 {activeTab === "overview" && "Dashboard Overview"}
                 {activeTab === "courses" && "My Courses"}
                 {activeTab === "assessments" && "Assessments"}
-                {activeTab === "recommendations" && "Recommended Resources"}
+                {activeTab === "roadmap" && "Learning Roadmap"}
                 {activeTab === "settings" && "Settings"}
               </h1>
               <p className="text-gray-600">
@@ -333,14 +522,14 @@ const DashboardPage = () => {
                   "Manage your enrolled courses and track completion"}
                 {activeTab === "assessments" &&
                   "View upcoming and completed assessments"}
-                {activeTab === "recommendations" &&
-                  "Resources selected based on your learning needs"}
+                {activeTab === "roadmap" &&
+                  "Your personalized learning path based on assessment results"}
                 {activeTab === "settings" &&
                   "Update your personal information and preferences"}
               </p>
             </motion.div>
 
-            {loading ? (
+            {loading && activeTab !== "roadmap" ? (
               <div className="bg-white p-6 rounded-xl shadow-sm flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
               </div>
@@ -595,20 +784,119 @@ const DashboardPage = () => {
                                   </span>
                                 </div>
                               </div>
-                              <button className="text-indigo-600 hover:text-indigo-800">
+                              <button 
+                                className="text-indigo-600 hover:text-indigo-800"
+                                onClick={() => handleViewDetails(assessment.id)}
+                              >
                                 <FaChevronRight />
                               </button>
                             </div>
                           </div>
                         ))}
-                    </div>
-                  ) : (
+                    </div>  ) : (
                     <p className="text-center text-gray-500 py-8">
                       No assessment results available yet
                     </p>
                   )}
                 </motion.div>
               </div>
+            ) : activeTab === "assessments" ? (
+              <motion.div
+                className="bg-white p-6 rounded-xl shadow-sm"
+                variants={itemVariants}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">
+                    Your Assessment History
+                  </h2>
+
+                  {assessmentResults.length > 0 ? (
+                    <div className="space-y-4">
+                      {assessmentResults.map((assessment, index) => (
+                        
+                        <div
+                          key={index}
+                          className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium text-gray-800">
+                                {assessment.subject
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  assessment.subject.slice(1)}{" "}
+                                Assessment
+                              </h3>
+                              <div className="flex flex-wrap items-center mt-2 text-sm text-gray-500 gap-2">
+                                <div className="flex items-center">
+                                  <FaRegCalendarAlt className="mr-1" />
+                                  <span>
+                                    {new Date(
+                                      assessment.completedAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <span>•</span>
+                                <div className="flex items-center">
+                                  <FaRegClock className="mr-1" />
+                                  <span>
+                                    {Math.floor(assessment.timeSpent / 60)}{" "}
+                                    minutes
+                                  </span>
+                                </div>
+                                <span>•</span>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs ${
+                                    assessment.score >= 70
+                                      ? "bg-green-100 text-green-800"
+                                      : assessment.score >= 50
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  Score: {assessment.score}%
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {assessment.correctAnswers} /{" "}
+                                  {assessment.totalQuestions} correct
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              className="text-indigo-600 hover:text-indigo-800"
+                              onClick={() =>
+                                
+                                
+                                handleViewDetails(assessment._id)
+                              }
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-gray-500 py-8">
+                      No assessment results available yet
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ) : activeTab === "roadmap" ? (
+              <motion.div
+                className="bg-white p-6 rounded-xl shadow-sm"
+                variants={itemVariants}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {renderRoadmap()}
+              </motion.div>
             ) : (
               <motion.div
                 className="bg-white p-6 rounded-xl shadow-sm"
@@ -617,100 +905,12 @@ const DashboardPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {activeTab === "assessments" && (
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                      Your Assessment History
-                    </h2>
-
-                    {assessmentResults.length > 0 ? (
-                      <div className="space-y-4">
-                        {assessmentResults.length > 0 ? (
-                          assessmentResults.map((assessment, index) => (
-                            <div
-                              key={index}
-                              className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                            >
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h3 className="font-medium text-gray-800">
-                                    {assessment.subject
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      assessment.subject.slice(1)}{" "}
-                                    Assessment
-                                  </h3>
-                                  <div className="flex flex-wrap items-center mt-2 text-sm text-gray-500 gap-2">
-                                    <div className="flex items-center">
-                                      <FaRegCalendarAlt className="mr-1" />
-                                      <span>
-                                        {new Date(
-                                          assessment.completedAt
-                                        ).toLocaleDateString()}
-                                      </span>
-                                    </div>
-                                    <span>•</span>
-                                    <div className="flex items-center">
-                                      <FaRegClock className="mr-1" />
-                                      <span>
-                                        {Math.floor(assessment.timeSpent / 60)}{" "}
-                                        minutes
-                                      </span>
-                                    </div>
-                                    <span>•</span>
-                                    <span
-                                      className={`px-2 py-1 rounded-full text-xs ${
-                                        assessment.score >= 70
-                                          ? "bg-green-100 text-green-800"
-                                          : assessment.score >= 50
-                                          ? "bg-yellow-100 text-yellow-800"
-                                          : "bg-red-100 text-red-800"
-                                      }`}
-                                    >
-                                      Score: {assessment.score}%
-                                    </span>
-                                    <span>•</span>
-                                    <span>
-                                      {assessment.correctAnswers} /{" "}
-                                      {assessment.totalQuestions} correct
-                                    </span>
-                                  </div>
-                                </div>
-                                <button
-                                  className="text-indigo-600 hover:text-indigo-800"
-                                  onClick={() =>
-                                    handleViewDetails(assessment.id)
-                                  }
-                                >
-                                  View Details
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-6 text-gray-500">
-                            No assessment results found.
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-center text-gray-500 py-8">
-                        No assessment results available yet
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {activeTab !== "assessments" && (
-                  <p className="text-gray-700 text-center py-8">
-                    {activeTab === "courses" &&
-                      "Courses content will be displayed here."}
-                    {activeTab === "recommendations" &&
-                      "Recommendations content will be displayed here."}
-                    {activeTab === "settings" &&
-                      "Settings content will be displayed here."}
-                  </p>
-                )}
+                <p className="text-gray-700 text-center py-8">
+                  {activeTab === "courses" &&
+                    "Courses content will be displayed here."}
+                  {activeTab === "settings" &&
+                    "Settings content will be displayed here."}
+                </p>
               </motion.div>
             )}
           </motion.div>

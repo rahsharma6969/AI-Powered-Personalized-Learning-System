@@ -66,7 +66,7 @@ router.get("/history/:userId", authenticateUser, async (req, res) => {
       .sort({ completedAt: -1 })
       .select("-detailedResponses");
 
-    console.log(assessments);
+    // console.log(assessments);
 
     res.json(assessments);
   } catch (error) {
@@ -75,30 +75,26 @@ router.get("/history/:userId", authenticateUser, async (req, res) => {
   }
 });
 
-// Get specific assessment result with details
-router.get("/result/:id", authenticateUser, async (req, res) => {
-  try {
-    const assessment = await AssessmentResult.findOne({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!assessment) {
-      return res.status(404).json({ error: "Assessment result not found" });
-    }
-
-    res.json(assessment);
-  } catch (error) {
-    console.error("Error fetching assessment result:", error);
-    res.status(500).json({ error: "Failed to fetch assessment result" });
-  }
-});
 
 
-// Add this endpoint to fetch a specific assessment report
+
+
+//  to fetch a specific report by ID
 router.get("/report/:reportId", authenticateUser, async (req, res) => {
   try {
-    const report = await AssessmentResult.findById(req.params.reportId);
+    // Validate reportId
+    const { reportId } = req.params;
+    
+    if (!reportId || reportId === 'undefined') {
+      return res.status(400).json({ error: "Valid report ID is required" });
+    }
+    
+    // Check if reportId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).json({ error: "Invalid report ID format" });
+    }
+    
+    const report = await AssessmentResult.findById(reportId);
     
     if (!report) {
       return res.status(404).json({ error: "Assessment report not found" });
@@ -109,12 +105,16 @@ router.get("/report/:reportId", authenticateUser, async (req, res) => {
       return res.status(403).json({ error: "Not authorized to view this report" });
     }
     
+    console.log("Fetched report:", report); 
     res.json(report);
   } catch (error) {
     console.error("Error fetching assessment report:", error);
     res.status(500).json({ error: "Failed to fetch assessment report" });
   }
 });
+
+
+
 
 // Add an endpoint to fetch all reports for a user
 router.get("/reports", authenticateUser, async (req, res) => {
