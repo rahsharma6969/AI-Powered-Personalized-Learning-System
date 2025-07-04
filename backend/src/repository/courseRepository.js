@@ -2,6 +2,9 @@ import Course from "../models/CourseModel.js";
 import crudRepository from "./crudRepository.js";
 const courseRepository = {
   ...crudRepository(Course), // Inherit basic CRUD operations
+   getAllCourses: async function(title)  {
+    return await Course.find().populate("videos");
+  },
 
   getByTitle: async function (title) {
     return await Course.findOne({ title });

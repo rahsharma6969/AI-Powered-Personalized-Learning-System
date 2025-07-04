@@ -2,18 +2,21 @@ import express from "express";
 import studentRoutes from "./studentRoutes.js";
 import courseRoutes from "./courseRoutes.js";
 import assessmentRoutes from "./assementRoutes.js";
-import questionRoutes from "./questionRoutes.js";
 import resultrouter from "./resultRoutes.js";
 import { getRecommendations } from "../controllers/recommendationController.js";
 import { authenticateUser } from "../middlewares/auth.js";
-import Survey from "../models/SurveyModel.js"; // Adjust the path as necessary
+import Survey from "../models/SurveyModel.js"; 
+import { getQuizData } from "../controllers/quizController.js";
+
+
 const router = express.Router();
 
 router.use("/students", studentRoutes);
 router.use("/courses", courseRoutes);
 router.use("/assessments", assessmentRoutes);
-router.use("/questions", questionRoutes);
+
 router.use("/results", resultrouter);
+router.use('/quiz/:subject', getQuizData);
 
 
 router.post("/assessments/survey/:userId", async (req, res) => {
@@ -56,5 +59,7 @@ router.post("/assessments/survey/:userId", async (req, res) => {
   
 
 router.post('/recommend', getRecommendations);
+
+
 
 export default router;

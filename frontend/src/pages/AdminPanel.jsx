@@ -9,7 +9,7 @@ const AdminPanelPage = () => {
 
   const menuItems = [
     { title: 'Add Assessment', path: '/add-assessment', icon: '📋' },
-    { title: 'Add Course', path: '/addCourse', icon: '📚' },
+    { title: 'Add Course', path: '/add-course', icon: '📚' },
     { title: 'Manage Users', path: '/manage-users', icon: '👥' },
     { title: 'View Analytics', path: '/analytics', icon: '📊' },
   ];

@@ -3,7 +3,7 @@ import axios from "../config/axiosConifg";
 export const LoginRequest = async (email, password) => {
   try {
     const response = await axios.post(
-      '/students/signin',  // Update the URL as needed
+      'http://localhost:5000/api/students/signin',  // Update the URL as needed
       { email, password },
       {
         headers: {
@@ -32,14 +32,45 @@ export const LoginRequest = async (email, password) => {
 
 
 
-export const RegisterRequest = async ({ name, email, password }) => {
+// export const RegisterRequest = async (userData) => {
+//   try {
+//     // Log all the data being sent
+//     console.log('RegisterRequest received data:', userData);
+//     console.log('Name specifically:', userData.name);
+    
+//     const response = await axios.post(
+//       'http://localhost:5000/api/students/signup',
+//       userData, // Send the entire userData object
+//       {
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//       }
+//     );
+//     return response.data;
+//   } catch (err) {
+//     throw new Error(err.response?.data?.message || 'User registration failed');
+//   }
+// };
+
+export const RegisterRequest = async ({ firstName, lastName, email, password, school, phone, standard }) => {
   try {
-     
-    console.log(name, email, password);
+    console.log('RegisterRequest received:', { firstName, lastName, email, password, school, phone, standard });
+    console.log('firstName specifically:', firstName);
+    console.log('lastName specifically:', lastName);
+    
+    // Create the payload object, only including fields that have values
+    const payload = { firstName, lastName, email, password };
+    
+    if (school) payload.school = school;
+    if (phone) payload.phone = phone;
+    if (standard) payload.standard = standard;
+    
+    console.log('Sending payload:', payload);
     
     const response = await axios.post(
-      '/students/signup',
-      { name, email, password },
+      'http://localhost:5000/api/students/signup',
+      payload,
       {
         headers: {
           'Content-Type': 'application/json',

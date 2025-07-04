@@ -5,8 +5,9 @@ export const createCourse = async (data) => {
 };
 
 export const getAllCourses = async () => {
-    return await courseRepository.getAll();
-};
+    const courses = await courseRepository.getAllCourses();
+    return courses;
+  }
 
 export const getCourseById = async (courseId) => {
     return await courseRepository.getById(courseId);

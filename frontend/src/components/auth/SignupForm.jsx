@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaCheck, FaTimes, FaPhone, FaSchool, FaGraduationCap } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { RegisterRequest } from '../../api/auth'; 
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,9 @@ const SignupForm = ({ onSubmit, className = '' }) => {
     email: '',
     password: '',
     confirmPassword: '',
+    school: '',
+    phone: '',
+    standard: '',
     agreeToTerms: false
   });
   
@@ -20,6 +23,10 @@ const SignupForm = ({ onSubmit, className = '' }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
+  // Standard options for dropdown
+  const standardOptions = [
+    '', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'
+  ];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,15 +47,15 @@ const SignupForm = ({ onSubmit, className = '' }) => {
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.firstName) {
+    if (!formData.firstName || formData.firstName.trim() === '') {
       newErrors.firstName = 'First name is required';
     }
     
-    if (!formData.lastName) {
+    if (!formData.lastName || formData.lastName.trim() === '') {
       newErrors.lastName = 'Last name is required';
     }
     
-    if (!formData.email) {
+    if (!formData.email || formData.email.trim() === '') {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
@@ -63,6 +70,14 @@ const SignupForm = ({ onSubmit, className = '' }) => {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+
+    // Phone validation (optional but if provided, should be valid)
+    if (formData.phone && formData.phone.trim() !== '') {
+      const phoneRegex = /^[+]?[\d\s\-()]{10,}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        newErrors.phone = 'Please enter a valid phone number';
+      }
+    }
     
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = 'You must agree to the terms and conditions';
@@ -72,26 +87,55 @@ const SignupForm = ({ onSubmit, className = '' }) => {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    if (validate()) {
-      try {
-        const result = await RegisterRequest({
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          password: formData.password,
-        });
-        console.log('Registration successful:', result);
-        navigate('/login'); // Redirect to login page after successful registration
-        // Handle success (redirect or message)
-      } catch (error) {
-        console.error('Registration error:', error.message);
-        setErrors(prev => ({ ...prev, apiError: error.message }));
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (validate()) {
+    try {
+      // Debug: Log form data before processing
+      console.log('Form data before processing:', formData);
+      
+      // Ensure firstName and lastName are not empty
+      if (!formData.firstName || !formData.lastName) {
+        setErrors(prev => ({ ...prev, apiError: 'First name and last name are required' }));
+        return;
       }
+      
+      // Prepare data according to schema - send firstName and lastName separately
+      const registrationData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      };
+
+      // Add optional fields only if they have values
+      if (formData.school && formData.school.trim() !== '') {
+        registrationData.school = formData.school.trim();
+      }
+      
+      if (formData.phone && formData.phone.trim() !== '') {
+        registrationData.phone = formData.phone.trim();
+      }
+      
+      if (formData.standard && formData.standard.trim() !== '') {
+        registrationData.standard = formData.standard.trim();
+      }
+
+      // Debug: Log the data being sent to backend
+      console.log('Data being sent to backend:', registrationData);
+      console.log('firstName field specifically:', registrationData.firstName);
+      console.log('lastName field specifically:', registrationData.lastName);
+      
+      const result = await RegisterRequest(registrationData);
+      console.log('Registration successful:', result);
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration error:', error.message);
+      setErrors(prev => ({ ...prev, apiError: error.message }));
     }
-  };
-  
+  }
+};
   
   // Password strength indicators
   const getPasswordStrength = (password) => {
@@ -132,10 +176,24 @@ const SignupForm = ({ onSubmit, className = '' }) => {
   
   return (
     <form className={`space-y-6 ${className}`} onSubmit={handleSubmit}>
+      {/* API Error Display */}
+      {errors.apiError && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <FaTimes className="h-5 w-5 text-red-400 mt-0.5" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Registration Error</h3>
+              <p className="mt-1 text-sm text-red-700">{errors.apiError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Name Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-            First name
+            First name *
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -160,7 +218,7 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         
         <div>
           <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-            Last name
+            Last name *
           </label>
           <div className="mt-1 relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -184,9 +242,10 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         </div>
       </div>
 
+      {/* Email Field */}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email address
+          Email address *
         </label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -210,9 +269,82 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         )}
       </div>
 
+      {/* School and Phone Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="school" className="block text-sm font-medium text-gray-700">
+            School
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaSchool className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="school"
+              name="school"
+              type="text"
+              value={formData.school}
+              onChange={handleChange}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm placeholder-gray-400 sm:text-sm"
+              placeholder="Your School Name"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+            Phone Number
+          </label>
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaPhone className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              className={`block w-full pl-10 pr-3 py-2 border ${
+                errors.phone ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+              } rounded-md shadow-sm placeholder-gray-400 sm:text-sm`}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+          {errors.phone && (
+            <p className="mt-2 text-sm text-red-600">{errors.phone}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Standard Field */}
+      <div>
+        <label htmlFor="standard" className="block text-sm font-medium text-gray-700">
+          Standard/Grade
+        </label>
+        <div className="mt-1 relative rounded-md shadow-sm">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaGraduationCap className="h-5 w-5 text-gray-400" />
+          </div>
+          <select
+            id="standard"
+            name="standard"
+            value={formData.standard}
+            onChange={handleChange}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-md shadow-sm sm:text-sm"
+          >
+            <option value="">Select your standard</option>
+            {standardOptions.slice(1).map((std) => (
+              <option key={std} value={std}>{std}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Password Field */}
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
+          Password *
         </label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -298,9 +430,10 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         )}
       </div>
 
+      {/* Confirm Password Field */}
       <div>
         <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-          Confirm Password
+          Confirm Password *
         </label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -333,6 +466,7 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         )}
       </div>
 
+      {/* Terms and Conditions */}
       <div className="flex items-center">
         <input
           id="agreeToTerms"
@@ -359,6 +493,7 @@ const SignupForm = ({ onSubmit, className = '' }) => {
         <p className="mt-2 text-sm text-red-600">{errors.agreeToTerms}</p>
       )}
 
+      {/* Submit Button */}
       <div>
         <button
           type="submit"

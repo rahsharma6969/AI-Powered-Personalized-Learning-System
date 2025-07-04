@@ -33,46 +33,40 @@ const AssessmentPage = lazy(() => import("./pages/AssessmentPage"));
 const PostAssessmentPage = lazy(() => import("./pages/PostAssessmentPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const ShopPage = lazy(() => import("./pages/ShopPage"));
-const StartAssessPage = lazy(() => import('./pages/StartAssessPage.jsx'))
+const StartAssessPage = lazy(() => import("./pages/StartAssessPage.jsx"));
 const AssessmentResultsPage = lazy(() =>
   import("./pages/AssessmentResultsPage.jsx")
 );
-const AddCourse = lazy(() => import('./pages/AddCourse.jsx'))
-// const AdminProvider = lazy(() => import("./context/AdminContext.jsx"));
-
+const AddCourse = lazy(() => import("./pages/AddCourse.jsx"));
 
 // Protected route component
 export const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading: userLoading } = useAuth();
   const { admin, loading: adminLoading } = useAdmin();
-  
+
   // Show loading while checking authentication
   if (userLoading || adminLoading) {
     return <LoadingSpinner fullScreen />;
   }
-  
+
   // If requireAdmin is true, only allow admins
   if (requireAdmin && !admin) {
     return <Navigate to="/adminLogin" replace />;
   }
-  
+
   // If not requiring admin specifically, allow either user or admin
   if (!user && !admin) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 };
-
-
 
 const MainLayout = ({ children, hideFooter = false }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-grow">
-        {children}
-      </div>
+      <div className="flex-grow">{children}</div>
       {!hideFooter && <Footer />}
     </div>
   );
@@ -101,191 +95,183 @@ function App() {
   return (
     <Router>
       <AdminProvider>
-      <AuthProvider>
-        <Suspense fallback={<LoadingSpinner fullScreen />}>
-          <Routes>
-            {/* Public routes */}
-            <Route
-              path="/"
-              element={
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
-              }
-            />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route
-              path="/courses"
-              element={
-                <MainLayout>
-                  <CoursesPage />
-                </MainLayout>
-              }
-            />
-            <Route path="/courses/:courseId" 
-            element= 
-            { <CourseDetailsPage /> }  />
-            
-            <Route
-              path="/assessment"
-              element={
-                <MainLayout>
-                  <AssessmentPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/assessment/:sub"
-              element={
-                <MainLayout>
-                  <StartAssessPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/assessment/:sub/results"
-              element={
-                <MainLayout>
-                  <AssessmentResultsPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/support"
-              element={
-                <MainLayout>
-                  <SupportPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/shop"
-              element={
-                <MainLayout>
-                  <ShopPage />
-                </MainLayout>
-              }
-            />
-
-           <Route
-              path="/adminLogin"
-              element={
-               
-                <MainLayout>
-                  <AdminLogin />
-                </MainLayout>
-               
-              }
-            />
-            <Route path='/addCourse'
-            element={
-              <AddCourse/>
-            }
-            />
-
-<Route
-              path="/adminPanel"
-              element={
-                <ProtectedRoute>
-                
-                  <AdminPanelPage />
-               
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <MainLayout hideFooter>
-                    <DashboardPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
+        <AuthProvider>
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Routes>
+              {/* Public routes */}
+              <Route
+                path="/"
+                element={
                   <MainLayout>
-                    <ProfilePage />
+                    <HomePage />
                   </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/pre"
-              element={
-                <ProtectedRoute>
+                }
+              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route
+                path="/courses"
+                element={
                   <MainLayout>
-                    <PreAssessmentPage />
+                    <CoursesPage />
                   </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/post"
-              element={
-                <ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId"
+                element={<CourseDetailsPage />}
+              />
+
+              <Route
+                path="/assessment"
+                element={
                   <MainLayout>
-                    <PostAssessmentPage />
+                    <AssessmentPage />
                   </MainLayout>
-                </ProtectedRoute>
-              }
-            />
+                }
+              />
+              <Route
+                path="/assessment/:sub"
+                element={
+                  <MainLayout>
+                    <StartAssessPage />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/assessment/:sub/results"
+                element={
+                  <MainLayout>
+                    <AssessmentResultsPage />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/support"
+                element={
+                  <MainLayout>
+                    <SupportPage />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  <MainLayout>
+                    <ShopPage />
+                  </MainLayout>
+                }
+              />
 
-            <Route 
-            path="/assessments" 
-            element={<AssessmentList />}
-             />
+              <Route
+                path="/adminLogin"
+                element={
+                  <MainLayout>
+                    <AdminLogin />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/add-course"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AddCourse />
+                  </ProtectedRoute>
+                }
+              />
 
+              <Route
+                path="/adminPanel"
+                element={
+                  <ProtectedRoute>
+                    <AdminPanelPage />
+                  </ProtectedRoute>
+                }
+              />
 
-           <Route 
-           path="/assessment/reports/:reportId" 
-           element= {<DetailedReportPage />} 
-           />
+              {/* Protected routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout hideFooter>
+                      <DashboardPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <ProfilePage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessment/pre"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <PreAssessmentPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/assessment/post"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <PostAssessmentPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-           <Route 
-           path="/reports"
-            element=
-            {<AssessmentReportsList />} />
+              <Route path="/assessments" element={<AssessmentList />} />
 
-            
-            {/* Catch all - 404 page */}
-            <Route
-              path="*"
-              element={
-                <MainLayout>
-                  <div className="container mx-auto px-4 py-16 text-center">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                      404 - Page Not Found
-                    </h1>
-                    <p className="text-lg text-gray-600 mb-8">
-                      The page you are looking for might have been removed, had
-                      its name changed, or is temporarily unavailable.
-                    </p>
-                    <button
-                      onClick={() => window.history.back()}
-                      className="mr-4 px-6 py-3 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      Go Back
-                    </button>
-                    <a
-                      href="/"
-                      className="px-6 py-3 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-                    >
-                      Go Home
-                    </a>
-                  </div>
-                </MainLayout>
-              }
-            />
-          </Routes>
-        </Suspense>
-      </AuthProvider>
+              <Route
+                path="/assessment/reports/:reportId"
+                element={<DetailedReportPage />}
+              />
+
+              <Route path="/reports" element={<AssessmentReportsList />} />
+
+              {/* Catch all - 404 page */}
+              <Route
+                path="*"
+                element={
+                  <MainLayout>
+                    <div className="container mx-auto px-4 py-16 text-center">
+                      <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                        404 - Page Not Found
+                      </h1>
+                      <p className="text-lg text-gray-600 mb-8">
+                        The page you are looking for might have been removed,
+                        had its name changed, or is temporarily unavailable.
+                      </p>
+                      <button
+                        onClick={() => window.history.back()}
+                        className="mr-4 px-6 py-3 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                      >
+                        Go Back
+                      </button>
+                      <a
+                        href="/"
+                        className="px-6 py-3 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                      >
+                        Go Home
+                      </a>
+                    </div>
+                  </MainLayout>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
       </AdminProvider>
     </Router>
   );

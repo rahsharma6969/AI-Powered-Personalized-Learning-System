@@ -2,22 +2,42 @@ import studentRepository from "../repository/studentRepository.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-export const registerStudentService = async (data) => {
-  const { email, firstName, lastName, password } = data;
+// export const registerStudentService = async (data) => {
+//   const { email, firstName, lastName, password } = data;
 
+//   // Combine firstName and lastName into a full name
+//   const studentData = {
+//     name: `${firstName} ${lastName}`.trim(),  // trimming in case lastName is optional
+//     email,
+//     password,
+//   };
+
+//   const existingStudent = await studentRepository.getByEmail(email);
+//   if (existingStudent) throw new Error("Email already registered");
+
+//   return await studentRepository.create(studentData);
+// };
+
+export const registerStudentService = async (data) => {
+  const { email, firstName, lastName, password, school, phone, standard } = data;
+  
   // Combine firstName and lastName into a full name
   const studentData = {
-    name: `${firstName} ${lastName}`.trim(),  // trimming in case lastName is optional
+    name: `${firstName} ${lastName}`.trim(),
     email,
     password,
   };
-
+  
+  // Add optional fields if they exist
+  if (school) studentData.school = school;
+  if (phone) studentData.phone = phone;
+  if (standard) studentData.standard = standard;
+  
   const existingStudent = await studentRepository.getByEmail(email);
   if (existingStudent) throw new Error("Email already registered");
-
+  
   return await studentRepository.create(studentData);
 };
-
 
 export const loginStudentService = async (email, password) => {
   const student = await studentRepository.getByEmail(email);

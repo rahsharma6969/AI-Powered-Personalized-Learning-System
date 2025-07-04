@@ -10,7 +10,7 @@ import {
 export const registerStudentController = async (req, res) => {
     try {
         
-        console.log(req.body);
+        // console.log(req.body);
         
         const student = await registerStudentService(req.body);
         res.status(201)

@@ -26,7 +26,7 @@ export const adminLogin = async (req, res) => {
       expiresIn: "1h",
     });
 
-    console.log("Admin login successful, sending response");
+    console.log("Admin login successful, sending response",token);
     return res.json({ 
       admin: { id: admin._id, email: admin.email },
       token,

@@ -2,21 +2,33 @@ import * as courseService from "../services/courseService.js";
 
 export const createCourseController = async (req, res) => {
     try {
-        const course = await courseService.createCourse(req.body);
+        // Prepare the course data with the uploaded file
+        const courseData = {
+            ...req.body,
+            // Add the coverImage path if a file was uploaded
+            coverImage: req.file ? `/uploads/${req.file.filename}` : null
+        };
+        
+        console.log('File uploaded:', req.file?.filename);
+        console.log('Course data:', courseData);
+        
+        const course = await courseService.createCourse(courseData);
         res.status(201).json({ message: "Course created successfully", course });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
-export const getAllCourses = async (req, res) => {
+
+
+export const getAllCourses =  async (req, res) => {
     try {
-        const courses = await courseService.getAllCourses();
-        res.status(200).json(courses);
+      const courses = await courseService.getAllCourses();
+      res.status(200).json({ success: true, data: courses });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
-};
+  }
 
 export const getCourseById = async (req, res) => {
     try {
