@@ -4,7 +4,8 @@ import {
     loginStudentService,
     enrollInCourse as enrollInCourseService,
     updateStudentPerformance as updateStudentPerformanceService,
-    updateStudentInfoService
+    updateStudentInfoService,
+    getProfile
 } from "../services/studentService.js";
 
 export const registerStudentController = async (req, res) => {
@@ -62,6 +63,8 @@ export const enrollInCourse = async (req, res) => {
     }
 };
 
+
+
 export const getStudentDashboard = async (req, res) => {
     try {
         const student = await getStudentByIdService(req.user.id);
@@ -98,4 +101,15 @@ export const updateStudentInfoController = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+};
+
+
+export const getStudentProfile = async (req, res) => {
+  try {
+    const studentId = req.user._id; // ✅ from middleware, not from params
+    const profile = await getProfile(studentId);
+    res.status(200).json(profile);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
 };

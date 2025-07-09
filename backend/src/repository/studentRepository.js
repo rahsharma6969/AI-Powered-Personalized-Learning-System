@@ -28,6 +28,14 @@ const studentRepository = {
       { new: true }
     ).populate("assessments");
   },
+
+   // repositories/studentRepository.js
+getStudentById: async (studentId) => {
+  return await Student.findById(studentId)
+    .populate("assessments")
+    .populate("courses");
+}
+
 };
 
 export default studentRepository;

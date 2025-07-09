@@ -7,13 +7,15 @@ import { getRecommendations } from "../controllers/recommendationController.js";
 import { authenticateUser } from "../middlewares/auth.js";
 import Survey from "../models/SurveyModel.js"; 
 import { getQuizData } from "../controllers/quizController.js";
-
+import videoRoutes from "./videoRoute.js"
 
 const router = express.Router();
 
 router.use("/students", studentRoutes);
 router.use("/courses", courseRoutes);
 router.use("/assessments", assessmentRoutes);
+router.use("/videos", videoRoutes)
+
 
 router.use("/results", resultrouter);
 router.use('/quiz/:subject', getQuizData);

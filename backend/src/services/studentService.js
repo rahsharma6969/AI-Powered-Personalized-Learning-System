@@ -90,3 +90,11 @@ export const updateStudentInfoService = async (data, user) => {
     throw new Error(`Error updating student info: ${error.message}`);
   }
 };
+// services/studentService.js
+export const getProfile = async (studentId) => {
+  const student = await studentRepository.getStudentById(studentId);
+  if (!student) throw new Error("Student not found");
+
+  const { password, ...safeStudent } = student.toObject();
+  return safeStudent;
+};
