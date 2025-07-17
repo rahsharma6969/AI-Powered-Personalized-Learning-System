@@ -1,760 +1,373 @@
 import React, { useState } from 'react';
-import { FaUser, FaEnvelope, FaLock, FaBell, FaCreditCard, FaDownload, FaShieldAlt, FaSignOutAlt } from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
-
+import { User, Lock, Bell, CreditCard, Award, LogOut } from 'lucide-react';
+import { fetchStudentProfile } from '../api/auth';
 const ProfilePage = () => {
-  const navigate = useNavigate();
-
-  const [activeTab, setActiveTab] = useState('account');
-  const [user, setUser] = useState({
-    firstName: 'John',
-    lastName: 'Smith',
-    email: 'john.smith@example.com',
-    avatar: 'https://placehold.co/200x200?text=JS',
-    phone: '+1 (123) 456-7890',
-    grade: '11th Grade',
-    school: 'Lincoln High School',
-    interests: ['Mathematics', 'Physics', 'Computer Science'],
-    emailNotifications: true,
-    smsNotifications: false,
-    twoFactorAuth: false
-  });
-
+  const [activeTab, setActiveTab] = useState('Account');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // This would typically come from your API call to /profile
+  const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
-    grade: user.grade,
-    school: user.school,
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    gradeLevel: '',
+    school: '',
+    academicInterests: []
   });
 
-  const [errors, setErrors] = useState({});
+  // Real API call to fetch current user's data
+  React.useEffect(() => {
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const userData = await fetchStudentProfile();
+      setUserData(userData);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+      const nameParts = userData.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const interests = userData.subjectPerformance
+        ? Object.keys(userData.subjectPerformance)
+        : [];
+
+      setFormData({
+        firstName,
+        lastName,
+        email: userData.email,
+        phone: userData.phone,
+        gradeLevel: userData.standard,
+        school: userData.school,
+        academicInterests: interests
+      });
+
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+      setError(`Failed to load user data: ${err.message}`);
+      setLoading(false);
+    }
+  };
+
+  loadProfile();
+}, []);
+
+  const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [field]: value
     }));
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+  const handleAddInterest = () => {
+    // This would typically open a modal or dropdown to select interests
+    console.log('Add interest clicked');
   };
 
-
-  const handleToggleChange = (setting) => {
-    setUser(prev => ({
+  const handleRemoveInterest = (interest) => {
+    setFormData(prev => ({
       ...prev,
-      [setting]: !prev[setting]
+      academicInterests: prev.academicInterests.filter(i => i !== interest)
     }));
   };
 
-  const handleAccountSubmit = (e) => {
-    e.preventDefault();
-
-    // Validate form
-    const newErrors = {};
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.lastName) newErrors.lastName = 'Last name is required';
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    setErrors(newErrors);
-
-    // If no errors, update user
-    if (Object.keys(newErrors).length === 0) {
-      setUser(prev => ({
-        ...prev,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+  const handleSaveChanges = async () => {
+    try {
+      // Combine first and last name
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      
+      const updatedData = {
+        name: fullName,
         email: formData.email,
         phone: formData.phone,
-        grade: formData.grade,
-        school: formData.school
-      }));
-
-      // Show success message (would be a toast in a real app)
-      alert('Profile updated successfully!');
+        standard: formData.gradeLevel,
+        school: formData.school,
+        // You might want to update subjectPerformance based on academic interests
+      };
+      
+      console.log('Saving changes:', updatedData);
+      
+      // Replace with your actual API call
+      // const response = await fetch('/api/profile', {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
+      //   },
+      //   body: JSON.stringify(updatedData)
+      // });
+      
+      // if (response.ok) {
+      //   // Update local state
+      //   setUserData(prev => ({ ...prev, ...updatedData }));
+      //   alert('Profile updated successfully!');
+      // }
+    } catch (err) {
+      console.error('Error saving changes:', err);
+      alert('Failed to save changes');
     }
   };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
+  // Get initials from name
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
-    // Validate form
-    const newErrors = {};
-    if (!formData.currentPassword) newErrors.currentPassword = 'Current password is required';
-    if (!formData.newPassword) {
-      newErrors.newPassword = 'New password is required';
-    } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters';
-    }
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-
-    // If no errors, update password
-    if (Object.keys(newErrors).length === 0) {
-      // In a real app, call API to update password
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }));
-
-      // Show success message (would be a toast in a real app)
-      alert('Password updated successfully!');
+  const handleCancel = () => {
+    // Reset form to original user data
+    if (userData) {
+      const nameParts = userData.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      const interests = userData.subjectPerformance ? Object.keys(userData.subjectPerformance) : [];
+      
+      setFormData({
+        firstName,
+        lastName,
+        email: userData.email,
+        phone: userData.phone,
+        gradeLevel: userData.standard,
+        school: userData.school,
+        academicInterests: interests
+      });
     }
   };
 
-  // Array of tabs with their icons and labels
-  const tabs = [
-    { id: 'account', icon: <FaUser />, label: 'Account' },
-    { id: 'security', icon: <FaLock />, label: 'Security' },
-    { id: 'notifications', icon: <FaBell />, label: 'Notifications' },
-    { id: 'billing', icon: <FaCreditCard />, label: 'Billing' },
-    { id: 'certificates', icon: <FaDownload />, label: 'Certificates' }
+  const menuItems = [
+    { id: 'Account', label: 'Account', icon: User },
+    { id: 'Security', label: 'Security', icon: Lock },
+    { id: 'Notifications', label: 'Notifications', icon: Bell },
+    { id: 'Billing', label: 'Billing', icon: CreditCard },
+    { id: 'Certificates', label: 'Certificates', icon: Award },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="md:flex md:items-center md:justify-between mb-8">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-              Profile Settings
-            </h2>
+      {/* Header */}
+      {/* Loading State */}
+      {loading && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         </div>
+      )}
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="md:flex">
+      {/* Error State */}
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {!loading && !error && userData && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Profile Settings</h1>
+          
+          <div className="flex gap-8">
             {/* Sidebar */}
-            <div className="md:w-64 bg-gray-50 md:border-r md:border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+            <div className="w-64 flex-shrink-0">
+              {/* Profile Info */}
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 mr-4">
-                    <img
-                      className="h-16 w-16 rounded-full object-cover border-2 border-indigo-500"
-                      src={user.avatar}
-                      alt={`${user.firstName} ${user.lastName}`}
-                    />
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-xl">
+                      {getInitials(userData.name)}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {user.firstName} {user.lastName}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {user.grade} • {user.school}
-                    </p>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900">{userData.name}</h3>
+                    <p className="text-sm text-gray-500">{userData.standard} • {userData.school}</p>
                   </div>
                 </div>
               </div>
 
-              <nav className="py-4">
-                <ul>
-                  {tabs.map(tab => (
-                    <li key={tab.id}>
-                      <button
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full text-left px-6 py-3 flex items-center space-x-3 ${activeTab === tab.id
-                          ? 'text-indigo-600 bg-indigo-50 border-l-4 border-indigo-600'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                      >
-                        <span className="text-lg">{tab.icon}</span>
-                        <span className="font-medium">{tab.label}</span>
-                      </button>
-                    </li>
-                  ))}
-
-                  {/* Sign Out */}
-                  <li className="mt-8 px-6">
+            {/* Menu */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <nav className="space-y-1 p-2">
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
                     <button
-                      onClick={handleSignOut}
-                      className="w-full text-left py-3 flex items-center space-x-3 text-red-600 hover:text-red-700"
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                        activeTab === item.id
+                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                     >
-                      <FaSignOutAlt className="text-lg" />
-                      <span className="font-medium">Sign Out</span>
+                      <Icon className="w-5 h-5 mr-3" />
+                      {item.label}
                     </button>
-
-                  </li>
-                </ul>
+                  );
+                })}
+                <button className="w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 transition-colors">
+                  <LogOut className="w-5 h-5 mr-3" />
+                  Sign Out
+                </button>
               </nav>
             </div>
+          </div>
 
-            {/* Main content */}
-            <div className="flex-1 p-6">
-              {/* Account Settings */}
-              {activeTab === 'account' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Account Settings</h3>
-                    <p className="text-sm text-gray-500">Update your personal information and academic details.</p>
+          {/* Main Content Area */}
+          <div className="flex-1">
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Account Settings</h2>
+                <p className="text-gray-600">Update your personal information and academic details.</p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Name Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">First name</label>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Last name</label>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
 
-                  <form onSubmit={handleAccountSubmit}>
-                    <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                      <div className="sm:col-span-3">
-                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                          First name
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="text"
-                            name="firstName"
-                            id="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            className={`block w-full border ${errors.firstName ? 'border-red-300' : 'border-gray-300'
-                              } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                          />
-                          {errors.firstName && (
-                            <p className="mt-2 text-sm text-red-600">{errors.firstName}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                          Last name
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="text"
-                            name="lastName"
-                            id="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className={`block w-full border ${errors.lastName ? 'border-red-300' : 'border-gray-300'
-                              } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                          />
-                          {errors.lastName && (
-                            <p className="mt-2 text-sm text-red-600">{errors.lastName}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-4">
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                          Email address
-                        </label>
-                        <div className="mt-1 relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FaEnvelope className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <input
-                            type="email"
-                            name="email"
-                            id="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className={`block w-full border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                              } rounded-md shadow-sm py-2 pl-10 pr-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                          />
-                          {errors.email && (
-                            <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-4">
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                          Phone number
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="tel"
-                            name="phone"
-                            id="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-3">
-                        <label htmlFor="grade" className="block text-sm font-medium text-gray-700">
-                          Grade Level
-                        </label>
-                        <div className="mt-1">
-                          <select
-                            id="grade"
-                            name="grade"
-                            value={formData.grade}
-                            onChange={handleInputChange}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          >
-                            <option>9th Grade</option>
-                            <option>10th Grade</option>
-                            <option>11th Grade</option>
-                            <option>12th Grade</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-6">
-                        <label htmlFor="school" className="block text-sm font-medium text-gray-700">
-                          School
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="text"
-                            name="school"
-                            id="school"
-                            value={formData.school}
-                            onChange={handleInputChange}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-6">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Academic Interests
-                        </label>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {user.interests.map((interest, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
-                            >
-                              {interest}
-                            </span>
-                          ))}
-                          <button
-                            type="button"
-                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
-                          >
-                            + Add Interest
-                          </button>
-                        </div>
-                      </div>
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">@</span>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="mt-6 flex justify-end">
-                      <button
-                        type="button"
-                        className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                {/* Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone number</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Grade Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                  <select
+                    value={formData.gradeLevel}
+                    onChange={(e) => handleInputChange('gradeLevel', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="1st">1st Grade</option>
+                    <option value="2nd">2nd Grade</option>
+                    <option value="3rd">3rd Grade</option>
+                    <option value="4th">4th Grade</option>
+                    <option value="5th">5th Grade</option>
+                    <option value="6th">6th Grade</option>
+                    <option value="7th">7th Grade</option>
+                    <option value="8th">8th Grade</option>
+                    <option value="9th">9th Grade</option>
+                    <option value="10th">10th Grade</option>
+                    <option value="11th">11th Grade</option>
+                    <option value="12th">12th Grade</option>
+                  </select>
+                </div>
+
+                {/* School */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                  <input
+                    type="text"
+                    value={formData.school}
+                    onChange={(e) => handleInputChange('school', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Academic Interests */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Academic Interests</label>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.academicInterests.map((interest) => (
+                      <span
+                        key={interest}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                       >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                </motion.div>
-              )}
-
-              {/* Security Settings */}
-              {activeTab === 'security' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Security Settings</h3>
-                    <p className="text-sm text-gray-500">Update your password and security preferences.</p>
-                  </div>
-
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
-                    <div className="p-6 border-b border-gray-200">
-                      <h4 className="text-base font-medium text-gray-900">Change Password</h4>
-                    </div>
-
-                    <div className="p-6">
-                      <form onSubmit={handlePasswordSubmit}>
-                        <div className="space-y-4">
-                          <div>
-                            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
-                              Current Password
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="password"
-                                name="currentPassword"
-                                id="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={handleInputChange}
-                                className={`block w-full border ${errors.currentPassword ? 'border-red-300' : 'border-gray-300'
-                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                              />
-                              {errors.currentPassword && (
-                                <p className="mt-2 text-sm text-red-600">{errors.currentPassword}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                              New Password
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="password"
-                                name="newPassword"
-                                id="newPassword"
-                                value={formData.newPassword}
-                                onChange={handleInputChange}
-                                className={`block w-full border ${errors.newPassword ? 'border-red-300' : 'border-gray-300'
-                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                              />
-                              {errors.newPassword && (
-                                <p className="mt-2 text-sm text-red-600">{errors.newPassword}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                              Confirm New Password
-                            </label>
-                            <div className="mt-1">
-                              <input
-                                type="password"
-                                name="confirmPassword"
-                                id="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleInputChange}
-                                className={`block w-full border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                                  } rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                              />
-                              {errors.confirmPassword && (
-                                <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-5">
-                          <button
-                            type="submit"
-                            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                          >
-                            Update Password
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="p-6 border-b border-gray-200">
-                      <h4 className="text-base font-medium text-gray-900">Two-Factor Authentication</h4>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-700">
-                            Add an extra layer of security to your account by enabling two-factor authentication.
-                          </p>
-                        </div>
-                        <div className="ml-4 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleChange('twoFactorAuth')}
-                            className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.twoFactorAuth ? 'bg-indigo-600' : 'bg-gray-200'
-                              }`}
-                          >
-                            <span className="sr-only">Toggle two-factor authentication</span>
-                            <span
-                              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
-                                }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-
-                      {!user.twoFactorAuth && (
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                          >
-                            <FaShieldAlt className="mr-2" />
-                            Setup Two-Factor Authentication
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              {activeTab === 'notifications' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Notification Preferences</h3>
-                    <p className="text-sm text-gray-500">Manage how you want to receive updates from us.</p>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Email Notifications */}
-                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
-                        <p className="text-sm text-gray-500">Receive updates via email.</p>
-                      </div>
-                      <button
-                        onClick={() => handleToggleChange('emailNotifications')}
-                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.emailNotifications ? 'bg-indigo-600' : 'bg-gray-300'
-                          }`}
-                      >
-                        <span
-                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.emailNotifications ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* SMS Notifications */}
-                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900">SMS Notifications</h4>
-                        <p className="text-sm text-gray-500">Receive text messages for important updates.</p>
-                      </div>
-                      <button
-                        onClick={() => handleToggleChange('smsNotifications')}
-                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.smsNotifications ? 'bg-indigo-600' : 'bg-gray-300'
-                          }`}
-                      >
-                        <span
-                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.smsNotifications ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Two-Factor Authentication */}
-                    <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h4>
-                        <p className="text-sm text-gray-500">Enhance security by enabling 2FA.</p>
-                      </div>
-                      <button
-                        onClick={() => handleToggleChange('twoFactorAuth')}
-                        className={`relative inline-flex h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 ${user.twoFactorAuth ? 'bg-indigo-600' : 'bg-gray-300'
-                          }`}
-                      >
-                        <span
-                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${user.twoFactorAuth ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-
-              {/* Notifications Settings */}
-              {activeTab === 'notifications' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Notification Settings</h3>
-                    <p className="text-sm text-gray-500">Choose how you want to be notified about your courses, assessments, and account activity.</p>
-                  </div>
-
-                  <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-                    <ul className="divide-y divide-gray-200">
-                      <li className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="text-base font-medium text-gray-900">Email Notifications</h4>
-                            <p className="mt-1 text-sm text-gray-500">
-                              Receive course updates, assessment reminders, and account notifications via email.
-                            </p>
-                          </div>
-                          <div className="ml-4 flex-shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleChange('emailNotifications')}
-                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.emailNotifications ? 'bg-indigo-600' : 'bg-gray-200'
-                                }`}
-                            >
-                              <span className="sr-only">Toggle email notifications</span>
-                              <span
-                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.emailNotifications ? 'translate-x-5' : 'translate-x-0'
-                                  }`}
-                              />
-                            </button>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="text-base font-medium text-gray-900">SMS Notifications</h4>
-                            <p className="mt-1 text-sm text-gray-500">
-                              Receive text message alerts for important updates and reminders.
-                            </p>
-                          </div>
-                          <div className="ml-4 flex-shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleChange('smsNotifications')}
-                              className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${user.smsNotifications ? 'bg-indigo-600' : 'bg-gray-200'
-                                }`}
-                            >
-                              <span className="sr-only">Toggle SMS notifications</span>
-                              <span
-                                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${user.smsNotifications ? 'translate-x-5' : 'translate-x-0'
-                                  }`}
-                              />
-                            </button>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Billing Settings */}
-              {activeTab === 'billing' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Billing & Subscriptions</h3>
-                    <p className="text-sm text-gray-500">Manage your payment methods and subscription details.</p>
-                  </div>
-
-                  <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
-                    <div className="p-6 border-b border-gray-200">
-                      <h4 className="text-base font-medium text-gray-900">Current Plan</h4>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Free Plan</p>
-                          <p className="text-sm text-gray-500 mt-1">Basic access to courses and assessments</p>
-                        </div>
+                        {interest}
                         <button
-                          type="button"
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          onClick={() => handleRemoveInterest(interest)}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
                         >
-                          Upgrade
+                          ×
                         </button>
-                      </div>
-                    </div>
+                      </span>
+                    ))}
+                    <button
+                      onClick={handleAddInterest}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                    >
+                      + Add Interest
+                    </button>
                   </div>
+                </div>
+              </div>
 
-                  <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="p-6 border-b border-gray-200">
-                      <h4 className="text-base font-medium text-gray-900">Payment Methods</h4>
-                    </div>
-
-                    <div className="p-6">
-                      <p className="text-sm text-gray-700">No payment methods added yet.</p>
-                      <button
-                        type="button"
-                        className="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Add Payment Method
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Certificates */}
-              {activeTab === 'certificates' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900">Certificates</h3>
-                    <p className="text-sm text-gray-500">View and download your earned certificates.</p>
-                  </div>
-
-                  <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="p-8 text-center">
-                      <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        ></path>
-                      </svg>
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">No certificates yet</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Complete courses to earn certificates that will appear here.
-                      </p>
-                      <div className="mt-6">
-                        <button
-                          type="button"
-                          className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          Browse Courses
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveChanges}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
+        </div>
+      )}
     </div>
   );
 };
 
 export default ProfilePage;
+

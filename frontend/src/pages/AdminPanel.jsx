@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { useAdmin } from '../hooks/useAdmin'; // Import the admin hook
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdmin } from '../hooks/useAdmin';
 
 const AdminPanelPage = () => {
-  const { adminLogout } = useAdmin(); // Get logout function
+  const { adminLogout } = useAdmin();
+  const navigate = useNavigate();
+
   const handleNavigation = (path) => {
     console.log(`Navigating to: ${path}`);
+    navigate(path);
   };
 
   const menuItems = [

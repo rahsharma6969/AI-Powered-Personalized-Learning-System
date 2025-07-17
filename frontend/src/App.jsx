@@ -26,11 +26,11 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
-const CourseDetailsPage = lazy(() => import("./pages/CourseDetailPage"));
+const CourseContentPage = lazy(() => import("./pages/CourseContentPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const PreAssessmentPage = lazy(() => import("./pages/PreAssessmentPage"));
 const AssessmentPage = lazy(() => import("./pages/AssessmentPage"));
-const PostAssessmentPage = lazy(() => import("./pages/PostAssessmentPage"));
+
 const SupportPage = lazy(() => import("./pages/SupportPage"));
 const ShopPage = lazy(() => import("./pages/ShopPage"));
 const StartAssessPage = lazy(() => import("./pages/StartAssessPage.jsx"));
@@ -38,6 +38,7 @@ const AssessmentResultsPage = lazy(() =>
   import("./pages/AssessmentResultsPage.jsx")
 );
 const AddCourse = lazy(() => import("./pages/AddCourse.jsx"));
+const TestGenerator = lazy(() => import("./pages/TestGeneratorInterface.jsx"));
 
 // Protected route component
 export const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -118,8 +119,8 @@ function App() {
                 }
               />
               <Route
-                path="/courses/:courseId"
-                element={<CourseDetailsPage />}
+                path="/course/:courseId"
+                element={<CourseContentPage />}
               />
 
               <Route
@@ -162,7 +163,7 @@ function App() {
                   </MainLayout>
                 }
               />
-
+              
               <Route
                 path="/adminLogin"
                 element={
@@ -171,11 +172,26 @@ function App() {
                   </MainLayout>
                 }
               />
+
+              {/* Admin-only routes */}
               <Route
                 path="/add-course"
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <AddCourse />
+                    {/* <MainLayout> */}
+                      <AddCourse />
+                    {/* </MainLayout> */}
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/test-generator"
+                element={
+                  <ProtectedRoute >
+                    <MainLayout>
+                      <TestGenerator />
+                    </MainLayout>
                   </ProtectedRoute>
                 }
               />
@@ -184,7 +200,9 @@ function App() {
                 path="/adminPanel"
                 element={
                   <ProtectedRoute>
-                    <AdminPanelPage />
+                    {/* <MainLayout> */}
+                      <AdminPanelPage />
+                    {/* </MainLayout> */}
                   </ProtectedRoute>
                 }
               />
@@ -220,16 +238,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/assessment/post"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <PostAssessmentPage />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+              
 
               <Route path="/assessments" element={<AssessmentList />} />
 

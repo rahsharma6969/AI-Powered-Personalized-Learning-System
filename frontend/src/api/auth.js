@@ -26,33 +26,6 @@ export const LoginRequest = async (email, password) => {
 };
 
 
-
-
-
-
-
-
-// export const RegisterRequest = async (userData) => {
-//   try {
-//     // Log all the data being sent
-//     console.log('RegisterRequest received data:', userData);
-//     console.log('Name specifically:', userData.name);
-    
-//     const response = await axios.post(
-//       'http://localhost:5000/api/students/signup',
-//       userData, // Send the entire userData object
-//       {
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//       }
-//     );
-//     return response.data;
-//   } catch (err) {
-//     throw new Error(err.response?.data?.message || 'User registration failed');
-//   }
-// };
-
 export const RegisterRequest = async ({ firstName, lastName, email, password, school, phone, standard }) => {
   try {
     console.log('RegisterRequest received:', { firstName, lastName, email, password, school, phone, standard });
@@ -81,4 +54,29 @@ export const RegisterRequest = async ({ firstName, lastName, email, password, sc
   } catch (err) {
     throw new Error(err.response?.data?.message || 'User registration failed');
   }
+};
+
+
+// src/api/student.js
+
+export const fetchStudentProfile = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  const response = await fetch('http://localhost:5000/api/students/profile', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
 };
