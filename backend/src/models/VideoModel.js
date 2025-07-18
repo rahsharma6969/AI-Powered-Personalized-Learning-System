@@ -6,7 +6,7 @@ const videoSchema = new mongoose.Schema({
     url: { type: String, required: true },
     duration: { type: Number },
     order: { type: Number },
-}, { _id: false });
+});
 
 // export default videoSchema;
 export default mongoose.model("Video", videoSchema);

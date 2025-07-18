@@ -11,6 +11,7 @@ const studentSchema = new mongoose.Schema({
     standard: { type: String },
     assessments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Assessment" }],
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
+    purchases: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Purchase' }],
     subjectPerformance: {  
         Physics: { type: Number, default: 0 },  
         Chemistry: { type: Number, default: 0 },  

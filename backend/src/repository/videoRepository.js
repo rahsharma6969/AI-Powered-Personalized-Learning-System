@@ -12,7 +12,14 @@ const videoRepository = {
       { $push: { videos: videoId } },
       { new: true }
     ).populate("videos");
-  }
+  },
+
+  async getVideoById(id) {
+    return await Video.findById(id);
+  },
+  async getAllVideos() {
+    return await Video.find();
+  },
 };
 
 export default videoRepository;

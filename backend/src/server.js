@@ -7,7 +7,7 @@ import adminRouter from "./routes/adminRoutes.js";
 import { createAdmin } from "./config/initAdmin.js"; // ✅ import clean
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import payroutes from "./routes/pay.js";
 
 dotenv.config();
 
@@ -31,6 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API Routes
 app.use("/api", routes);
 app.use("/admin", adminRouter);
+app.use("/ap1", payroutes); 
 
 // MongoDB Connection
 mongoose

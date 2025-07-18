@@ -1,32 +1,4 @@
-// // middlewares/multerConfig.js
-// import multer from 'multer';
-// import path from 'path';
-// import { fileURLToPath } from 'url';
-// import fs from 'fs';
 
-// // Ensure upload folder exists
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// const uploadDir = path.join(__dirname, '../uploads');
-// if (!fs.existsSync(uploadDir)) {
-//   fs.mkdirSync(uploadDir);
-// }
-
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, uploadDir); // Store files in /uploads
-//   },
-//   filename: function (req, file, cb) {
-//     const ext = path.extname(file.originalname);
-//     cb(null, Date.now() + ext);
-//   }
-// });
-
-// const upload = multer({ storage });
-// export default upload;
-
-
-// middlewares/multerConfig.js
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
