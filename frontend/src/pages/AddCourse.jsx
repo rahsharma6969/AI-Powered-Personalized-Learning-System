@@ -9,11 +9,11 @@ const AddCourse = () => {
     title: '',
     description: '',
     shortDescription: '',
-    category: '',
-    subcategory: '',
+    // subcategory: '',
     slug: '',
     tags: [],
     isFree: true,
+    price: '',
     level: 'beginner',
     language: 'english',
     status: 'draft',
@@ -101,6 +101,13 @@ const AddCourse = () => {
     }
   }, [formData.title]);
 
+  // Clear price when switching to free
+  React.useEffect(() => {
+    if (formData.isFree) {
+      setFormData(prev => ({ ...prev, price: '' }));
+    }
+  }, [formData.isFree]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!adminToken) {
@@ -108,15 +115,23 @@ const AddCourse = () => {
       return;
     }
 
+    // Validate price for paid courses
+    if (!formData.isFree && (!formData.price || formData.price <= 0)) {
+      setError("Please enter a valid price for paid courses");
+      return;
+    }
+
     const courseData = new FormData();
     courseData.append('title', formData.title);
     courseData.append('description', formData.description);
     courseData.append('shortDescription', formData.shortDescription);
-    courseData.append('category', formData.category);
-    courseData.append('subcategory', formData.subcategory);
+    // courseData.append('subcategory', formData.subcategory);
     courseData.append('slug', formData.slug);
     courseData.append('tags', JSON.stringify(formData.tags));
     courseData.append('isFree', formData.isFree ? 'true' : 'false');
+    if (!formData.isFree) {
+      courseData.append('price', formData.price);
+    }
     courseData.append('level', formData.level);
     courseData.append('language', formData.language);
     courseData.append('status', formData.status);
@@ -143,11 +158,11 @@ const AddCourse = () => {
         title: '',
         description: '',
         shortDescription: '',
-        category: '',
-        subcategory: '',
+        // subcategory: '',
         slug: '',
         tags: [],
         isFree: true,
+        price: '',
         level: 'beginner',
         language: 'english',
         status: 'draft',
@@ -263,40 +278,18 @@ const AddCourse = () => {
                 />
               </div>
 
-              {/* Categories and Classification */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Category</option>
-                    <option value="programming">Programming</option>
-                    <option value="design">Design</option>
-                    <option value="business">Business</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="photography">Photography</option>
-                    <option value="music">Music</option>
-                    <option value="health">Health & Fitness</option>
-                    <option value="lifestyle">Lifestyle</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategory</label>
-                  <input
-                    type="text"
-                    name="subcategory"
-                    value={formData.subcategory}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Web Development, UI/UX"
-                  />
-                </div>
-              </div>
+              {/* Subcategory */}
+              {/* <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Subcategory</label>
+                <input
+                  type="text"
+                  name="subcategory"
+                  value={formData.subcategory}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Web Development, UI/UX, Data Science"
+                />
+              </div> */}
 
               {/* Course Settings */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -347,7 +340,7 @@ const AddCourse = () => {
                 </div>
               </div>
 
-              {/* Course Type */}
+              {/* Course Type and Price */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Course Type *</label>
                 <div className="flex gap-6 mt-2">
@@ -372,6 +365,27 @@ const AddCourse = () => {
                     Paid
                   </label>
                 </div>
+                
+                {/* Price Input - Only show when Paid is selected */}
+                {!formData.isFree && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-3 text-gray-500">₹</span>
+                      <input
+                        type="number"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        required={!formData.isFree}
+                        min="0"
+                        step="0.01"
+                        className="w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tags */}
