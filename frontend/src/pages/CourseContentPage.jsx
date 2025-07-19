@@ -17,7 +17,6 @@ import {
   Shield,
 } from "lucide-react";
 
-
 const CourseContentPage = () => {
   const [courseData, setCourseData] = useState(null);
   const [paymentInfo, setPaymentInfo] = useState(null);
@@ -44,7 +43,7 @@ const CourseContentPage = () => {
     const courseResponse = await fetch(
       `http://localhost:5000/api/courses/${courseId}/details`
     );
-    
+
     if (!courseResponse.ok) {
       const errorText = await courseResponse.text();
       throw new Error(`HTTP error! status: ${courseResponse.status} - ${errorText}`);
@@ -57,7 +56,7 @@ const CourseContentPage = () => {
     const videosResponse = await fetch(
       `http://localhost:5000/api/courses/${courseId}/videos`
     );
-    
+
     if (!videosResponse.ok) {
       const errorText = await videosResponse.text();
       console.error("Videos API Error:", errorText);
@@ -879,3 +878,171 @@ const CourseContentPage = () => {
 };
 
 export default CourseContentPage;
+
+// import React, { useState, useEffect, useMemo } from "react";
+// import { AlertCircle } from "lucide-react";
+// import CourseHeader from "../components/coursecontent/CourseHeader";
+// import VideoPlayer from "../components/coursecontent/VideoPlayer";
+// import CourseInfo from "../components/coursecontent/CourseInfo";
+// import ProgressCard from "../components/coursecontent/ProgressCard";
+// import AccessCard from "../components/coursecontent/AccessCard";
+// import CourseContentSidebar from "../components/coursecontent/courseContentSider";
+// import PaymentModal from "../components/coursecontent/PaymentModel";
+// import LoadingSpinner from "../components/coursecontent/LoadingSpinner";
+// import useCourseData from "../hooks/courseContent/useCourseData";
+// import usePayment from "../hooks/courseContent/usePayment";
+
+// const CourseContentPage = () => {
+//   const [selectedVideo, setSelectedVideo] = useState(null);
+//   const [expandedSection, setExpandedSection] = useState(0);
+//   const [completedVideos, setCompletedVideos] = useState(new Set());
+//   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+//   const courseId = useMemo(() => {
+//     const parts = window.location.pathname.split("/course/");
+//     return parts[1] ? String(parts[1]) : null;
+//   }, []);
+
+//  const { courseData, paymentInfo, loading, hasAccess, setHasAccess, error } =
+//   useCourseData(courseId);
+
+// const {
+//   handlePurchase,
+//   loading: paymentLoading,
+// } = usePayment(
+//   courseData ?? {}, // ✅ Always pass a defined object
+//   paymentInfo ?? {},
+//   setHasAccess,
+//   () => setShowPaymentModal(false)
+// );
+
+// // Now it’s safe to use conditional rendering below:
+// if (loading || !courseData || !paymentInfo) {
+//   return <div>Loading course info...</div>;
+// }
+
+
+//   useEffect(() => {
+//     if (
+//       hasAccess &&
+//       courseData?.sections?.length &&
+//       courseData.sections[0].videos?.length &&
+//       !selectedVideo
+//     ) {
+//       setSelectedVideo(courseData.sections[0].videos[0]);
+//     }
+//   }, [hasAccess, courseData, selectedVideo]);
+
+//   const toggleVideoComplete = (videoId) => {
+//     if (!hasAccess) return;
+//     const updated = new Set(completedVideos);
+//     updated.has(videoId) ? updated.delete(videoId) : updated.add(videoId);
+//     setCompletedVideos(updated);
+//   };
+
+//   const totalVideos =
+//     courseData?.sections?.reduce(
+//       (acc, section) => acc + (section.videos?.length || 0),
+//       0
+//     ) || 0;
+
+//   const hasVideos = courseData?.sections?.some(
+//     (section) => section.videos?.length
+//   );
+
+//   if (loading) return <LoadingSpinner />;
+//   if (error)
+//     return (
+//       <div className="min-h-screen flex justify-center items-center">
+//         <div className="text-white text-center">
+//           <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
+//           <h2 className="text-xl font-semibold mb-2">Error Loading Course</h2>
+//           <p className="mb-4">{error}</p>
+//           <button
+//             onClick={() => window.location.reload()}
+//             className="bg-red-600 text-white px-4 py-2 rounded"
+//           >
+//             Retry
+//           </button>
+//         </div>
+//       </div>
+//     );
+
+//   if (!courseData || !paymentInfo)
+//     return (
+//       <div className="min-h-screen flex justify-center items-center">
+//         <p className="text-white">Course data is unavailable.</p>
+//       </div>
+//     );
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+//       <CourseHeader
+//         courseData={courseData}
+//         paymentInfo={paymentInfo}
+//         hasAccess={hasAccess}
+//         onBuyClick={() => setShowPaymentModal(true)}
+//       />
+
+//       <div className="max-w-7xl mx-auto px-4 py-8">
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+//           <div className="lg:col-span-2">
+//             <VideoPlayer
+//               selectedVideo={selectedVideo}
+//               hasAccess={hasAccess}
+//               paymentInfo={paymentInfo}
+//               hasVideos={hasVideos}
+//               completedVideos={completedVideos}
+//               onToggleComplete={toggleVideoComplete}
+//               onBuyClick={() => setShowPaymentModal(true)}
+//             />
+//             <CourseInfo courseData={courseData} />
+//           </div>
+
+//           <div className="space-y-6">
+//             {hasVideos && hasAccess && (
+//               <ProgressCard
+//                 completedCount={completedVideos.size}
+//                 totalVideos={totalVideos}
+//               />
+//             )}
+
+//             {!paymentInfo.isFree && (
+//               <AccessCard
+//                 hasAccess={hasAccess}
+//                 paymentInfo={paymentInfo}
+//                 onBuyClick={() => setShowPaymentModal(true)}
+//               />
+//             )}
+
+//             <CourseContentSidebar
+//               courseData={courseData}
+//               paymentInfo={paymentInfo}
+//               hasAccess={hasAccess}
+//               selectedVideo={selectedVideo}
+//               expandedSection={expandedSection}
+//               completedVideos={completedVideos}
+//               onVideoSelect={setSelectedVideo}
+//               onSectionToggle={setExpandedSection}
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       {showPaymentModal && (
+//         <PaymentModal
+//           courseData={courseData}
+//           paymentInfo={paymentInfo}
+//           loading={paymentLoading}
+//           onPurchase={() => {
+//             console.log("🧾 Purchase button clicked");
+//             handlePurchase();
+//           }}
+//           onClose={() => setShowPaymentModal(false)}
+//         />
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CourseContentPage;
